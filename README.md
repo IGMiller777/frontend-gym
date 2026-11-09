@@ -1,1 +1,48 @@
-# frontend-gym
+# Frontend Gym
+
+**RU.** Тренажёр для подготовки к frontend-собеседованию: уроки с объяснением прямо на странице и ссылками на официальную документацию, задачи с проверкой кода в браузере, «что выведет код», разбор инцидентов производительности и mock-интервью с ИИ. Интерфейс и контент на русском и английском.
+
+**EN.** A trainer for frontend interview prep: lessons that explain topics right on the page with links to official docs, coding tasks tested in the browser, "what does this code print", performance incident drills and AI mock interviews. UI and content in Russian and English.
+
+План разработки / Roadmap: [docs/PLAN.md](docs/PLAN.md).
+
+## Запуск / Run
+
+```bash
+pnpm install
+pnpm dev          # web http://localhost:5900, api :5901
+```
+
+На macOS можно дважды кликнуть `scripts/dev.command`: он найдёт свободную пару портов 5900–5909 и откроет браузер.
+On macOS you can double-click `scripts/dev.command`: it picks a free port pair in 5900–5909 and opens the browser.
+
+ИИ-функции работают через локальный Claude Code CLI (`claude -p`), без API-ключа. Модель: `GRADER_MODEL=opus pnpm dev` (по умолчанию `sonnet`).
+AI features use the local Claude Code CLI (`claude -p`), no API key. Model: `GRADER_MODEL=opus pnpm dev` (default `sonnet`).
+
+## Проверки / Checks
+
+```bash
+pnpm test        # vitest
+pnpm typecheck   # tsc -b (app + server)
+pnpm lint        # oxlint
+pnpm build
+```
+
+## Структура / Layout
+
+| Путь / Path | Что / What |
+|---|---|
+| `src/i18n/` | Словари RU/EN, `useT()`, `Localized<T>` / RU/EN dictionaries |
+| `src/content/` | Треки, обзоры, источники / tracks, overviews, sources |
+| `src/design/`, `src/index.css` | Токены, светлая и тёмная темы / tokens, light and dark themes |
+| `src/store.ts` | Прогресс (файл через API + localStorage) / progress (file via API + localStorage) |
+| `server/` | Hono API: прогресс, наставник / progress, mentor |
+
+Прогресс хранится в `data/frontend-gym.json` (в `.gitignore`) с ежедневными бэкапами в `data/backups/`.
+Progress lives in `data/frontend-gym.json` (gitignored) with daily backups in `data/backups/`.
+
+## Правила контента / Content rules
+
+1. Объяснение на странице, ссылки только в конце в блоке «Читать подробнее». / Explain on the page; links only at the end under "Read more".
+2. Каждый материал ссылается на официальный источник из списка в `src/content/sources.ts`. / Every item cites an official source from `src/content/sources.ts`.
+3. Каждый текст есть на обоих языках, это проверяют тесты. / Every text exists in both languages, enforced by tests.
