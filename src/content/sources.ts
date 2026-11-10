@@ -10,6 +10,7 @@ export const officialDomains = [
   'fetch.spec.whatwg.org',
   'dom.spec.whatwg.org',
   'www.w3.org',
+  'www.rfc-editor.org',
   'tc39.es',
   'www.typescriptlang.org',
   'react.dev',
