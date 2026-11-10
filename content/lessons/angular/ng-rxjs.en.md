@@ -59,6 +59,16 @@ replay: 3
 
 ## switchMap, mergeMap, concatMap, exhaustMap
 
+What the operators do when a new outer value arrives while the inner stream is still running:
+
+```mermaid
+flowchart LR
+  N["A new value,<br/>the previous request is in flight"] --> SW["switchMap<br/>unsubscribe from the old one,<br/>start the new (search)"]
+  N --> MG["mergeMap<br/>both in parallel<br/>(independent loads)"]
+  N --> CC["concatMap<br/>queue the new one,<br/>one at a time (saves)"]
+  N --> EX["exhaustMap<br/>ignore the new one<br/>(a second Pay click)"]
+```
+
 Higher-order operators turn each value into an inner stream (usually a request). They differ in what they do when a new value arrives while the previous request is still running. The same scenario for all four: three fast clicks and one later, with the first request the slowest:
 
 ```ts run
@@ -131,6 +141,96 @@ share B: response #3
 
 `shareReplay(1)` remembers the last value and gives it to late subscribers: a request cache. `share()` shares only the **active** subscription: once the source has completed, the next subscriber starts it again. With `refCount: false` the subscription to the source stays even with no subscribers (a leak for infinite streams). The `publish`, `multicast` and `refCount()` operators are deprecated in RxJS 7 and replaced by `share` and `connectable`.
 
+## Combining streams
+
+```mermaid
+flowchart LR
+  subgraph IN["Inputs"]
+    A["a$: a1 ... a2"]
+    B["b$: b1 ......"]
+  end
+  IN --> CL["combineLatest<br/>[a1,b1], [a2,b1]:<br/>latest from all, after each emitted once"]
+  IN --> FJ["forkJoin<br/>one value [aLast,bLast]<br/>when all complete"]
+  IN --> WL["a$.pipe(withLatestFrom(b$))<br/>a sets the pace, b is mixed in"]
+  IN --> Z["zip<br/>pairs in order: [a1,b1], [a2,b2]"]
+  IN --> M["merge<br/>all values in one stream"]
+  IN --> C["concat<br/>all of a$, then b$"]
+```
+
+```ts run
+import { BehaviorSubject, Subject, combineLatest, concat, forkJoin, merge, of, withLatestFrom, zip } from 'rxjs'
+
+const filter$ = new BehaviorSubject('all')
+const page$ = new BehaviorSubject(1)
+combineLatest([filter$, page$]).subscribe(([f, p]) => console.log('combineLatest:', f, p))
+page$.next(2)
+filter$.next('done')
+
+forkJoin({ user: of('Ann'), orders: of([1, 2]) }).subscribe((r) => console.log('forkJoin:', JSON.stringify(r)))
+
+const clicks$ = new Subject<string>()
+const user$ = new BehaviorSubject('Ann')
+clicks$.pipe(withLatestFrom(user$)).subscribe(([c, u]) => console.log('withLatestFrom:', c, u))
+clicks$.next('save')
+user$.next('Bob') // does not emit by itself
+clicks$.next('send')
+
+zip(of('a', 'b', 'c'), of(1, 2)).subscribe((pair) => console.log('zip:', pair.join('')))
+merge(of('m1'), of('m2')).subscribe((v) => console.log('merge:', v))
+concat(of('first'), of('second')).subscribe((v) => console.log('concat:', v))
+```
+
+```output
+combineLatest: all 1
+combineLatest: all 2
+combineLatest: done 2
+forkJoin: {"user":"Ann","orders":[1,2]}
+withLatestFrom: save Ann
+withLatestFrom: send Bob
+zip: a1
+zip: b2
+merge: m1
+merge: m2
+concat: first
+concat: second
+```
+
+- **`combineLatest`**: a value computed from several sources (filters, sorting and the page of a list). Silent until every source has emitted at least once.
+- **`forkJoin`**: several independent requests in parallel, one result when all **complete** (like `Promise.all`). If a source never completes (`interval`, a `Subject`), `forkJoin` emits nothing; an error in any source aborts everything.
+- **`withLatestFrom`**: a user action together with the current state (a "save" click plus the current form); the second stream emits nothing by itself.
+- **`zip`** pairs values in order and is rarely needed in UI; **`merge`** combines events from different sources; **`concat`** runs streams strictly one after another.
+- In signal-based code `computed` over several signals often replaces `combineLatest`.
+
+## Schedulers
+
+A scheduler decides **when** a value is delivered. By default synchronous sources (`of`, `from` an array) emit right away, inside `subscribe`.
+
+| Scheduler | When it runs | Use |
+|---|---|---|
+| none (synchronous) | Immediately | The default |
+| `queueScheduler` | Synchronously, but queued (no deep recursion) | Recursive operators |
+| `asapScheduler` | A microtask (like `Promise.then`) | Defer to the end of the current code |
+| `asyncScheduler` | A task (`setTimeout`) | `delay`, `debounceTime`, `interval` use it |
+| `animationFrameScheduler` | Before a frame is painted (`requestAnimationFrame`) | Smooth animations and measurements |
+
+```ts run
+import { asapScheduler, asyncScheduler, observeOn, of } from 'rxjs'
+
+const log: string[] = []
+of('sync').subscribe((v) => log.push(v))
+of('async').pipe(observeOn(asyncScheduler)).subscribe((v) => log.push(v))
+of('asap').pipe(observeOn(asapScheduler)).subscribe((v) => log.push(v))
+log.push('end of script')
+await new Promise((r) => setTimeout(r, 10))
+console.log(log.join(' → '))
+```
+
+```output
+sync → end of script → asap → async
+```
+
+`observeOn(scheduler)` moves the delivery of values, `subscribeOn` moves the subscription itself. In tests `TestScheduler` with marble diagrams (`'-a--b|'`) replaces schedulers to check timing without real waiting.
+
 ## Errors
 
 An error terminates a stream: no values come after `error`. That is why `catchError` goes inside `switchMap` (on the request), so that one failed request does not kill the stream of clicks.
@@ -182,3 +282,4 @@ Finite streams (`HttpClient.get`, `of`) complete by themselves, but unsubscribin
 - `shareReplay(1)` caches a result, `share` shares only the active subscription.
 - An error ends a stream: `catchError` inside, `retry({ delay })` outside; `firstValueFrom` instead of `toPromise`.
 - Unsubscribing: `toSignal`, `async`, `takeUntilDestroyed`.
+- Combining: `combineLatest` for values from several sources, `forkJoin` for parallel completing requests, `withLatestFrom` for an action with the current state; schedulers decide when a value is delivered (`asapScheduler` a microtask, `asyncScheduler` a task).

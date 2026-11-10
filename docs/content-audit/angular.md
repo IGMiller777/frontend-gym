@@ -78,3 +78,66 @@ NgRx и NGXS относятся к треку `state`, PWA и Service Worker к 
 - `inject()`, `@Service()`, виды провайдеров, `InjectionToken` с фабрикой, иерархия, где живёт root-сервис, `viewProviders` и проекция.
 - RxJS 7: холодные и горячие потоки, Subject-ы, четыре оператора отображения на одном примере, `share` и `shareReplay`, `retry({ delay })`, `firstValueFrom`, `takeUntilDestroyed`.
 - Функциональные интерсепторы и guards, привязка параметров маршрута к `input()`, signal forms, `@defer` и триггеры, SSR с `RenderMode`, инкрементальная гидратация, Vitest.
+
+## Покрытие заметок Notion (второй проход)
+
+Второй проход (ноябрь 2026) по правилу «все темы из заметок плюс основные вопросы собеседований» добавил 9 уроков и два раздела в урок RxJS. Каждая тема страницы «Angular» и место, где она разобрана:
+
+| Тема в заметках | Где разобрано |
+|---|---|
+| Incremental DOM и Ivy | `ng-internals#Ivy и Incremental DOM` |
+| Роль NgModule, компонент против модуля | `ng-internals#NgModule и standalone`, `ng-pipes-directives#Параметры декораторов` |
+| Access и refresh токены | `ng-architecture#Токены доступа и обновления` |
+| SOLID на Angular | `ng-architecture#SOLID на примерах Angular` |
+| Как работает приложение Angular | `ng-internals#Как запускается приложение` |
+| SPA, SSR и их различия | `ng-performance#SPA, SSR, SSG и гибрид`, `ng-app#SSR и гидратация` |
+| Как ускорить приложение, «Повышение производительности (2024)» | `ng-performance#Чек-лист производительности` |
+| Constructor против ngOnInit | `ng-lifecycle#Конструктор или ngOnInit` |
+| AngularJS против Angular, MVVM против MVC | `ng-internals#Angular и AngularJS, MVVM и MVC` |
+| Аутентификация и авторизация | `ng-architecture#Аутентификация и авторизация` |
+| JIT и AOT | `ng-internals#AOT и JIT` |
+| История версий (11–13 и далее) | `ng-internals#Версии`, таблица версий в начале этого аудита |
+| Lifecycle Hooks, afterNextRender, afterRender | `ng-lifecycle` |
+| ChangeDetection, Zone.js, Zoneless, ExpressionChanged | `ng-change-detection` |
+| Dependency Injection, Injection Tokens | `ng-di` |
+| RxJS: Observable, Subject, операторы, мультикаст, отписка | `ng-rxjs` |
+| RxJS: комбинирование потоков | `ng-rxjs#Комбинирование потоков` |
+| Schedulers | `ng-rxjs#Планировщики` |
+| Signals и задачник | `ng-signals` (исправления задач в таблице ошибок выше) |
+| Template: Refs, ng-template, ng-container, ng-content, outlets, переменные, Renderer2, запросы, перехват изменений входов | `ng-templates`, `ng-lifecycle#Как отреагировать на изменение входа` |
+| Dynamic Components | `ng-templates#Динамические компоненты` |
+| Tree Shaking | `ng-internals#Ivy и Incremental DOM` (рантайм), `js-modules#Tree-shaking` |
+| Pipes (Pure, Impure, Async) | `ng-pipes-directives#Пайпы` |
+| Directives, параметры декораторов, Host, параметры директив | `ng-pipes-directives` |
+| Routing, ActivatedRoute, Guards, CanActivate, CanDeactivate | `ng-router`, `ng-app#Роутер` |
+| Reactive и Template-Driven Forms | `ng-forms` |
+| Standalone Components | `ng-internals#NgModule и standalone`, `ng-components` |
+| Resolvers | `ng-router#Резолверы или загрузка в компоненте` |
+| Interceptors | `ng-app#HttpClient и интерсепторы`, `ng-architecture#Токены доступа и обновления` |
+| Deferrable Views | `ng-app#Ленивая загрузка и @defer`, `ng-performance#Гидратация подробнее` |
+| NgOptimizedImage | `ng-performance#NgOptimizedImage` |
+| SSR, Hydration, Hybrid Rendering, SSG, build-time prerendering | `ng-performance`, `ng-app#SSR и гидратация` |
+| Animation | `ng-performance#Анимации` |
+| Security issues (XSS, санитизация, XSRF, XSSI) | `ng-architecture#XSS и санитизация`, `#XSRF и XSSI` |
+| Progressive Web Apps, Service Workers | `ng-performance#PWA и Service Worker` |
+| Patterns in Angular | `ng-architecture#Паттерны поверх DI` |
+| Testing (unit, integration, E2E) | `ng-testing` |
+| NgRx и NGXS | трек `state` (этап 5) |
+| Best code practice: загрузка и показ данных | `ng-architecture#Умные и презентационные компоненты` (фасад), `ng-signals#resource` |
+
+Темы собеседований, которых нет в заметках и которые добавлены: `ControlValueAccessor`, signal forms, `hostDirectives`, `RouterTestingHarness`, харнессы компонентов.
+
+## Ошибки, найденные во втором проходе
+
+| Раздел | В заметках | На самом деле | Источник |
+|---|---|---|---|
+| Lifecycle Hooks | `afterRender` | Переименован в `afterEveryRender` в v20 | [Angular 20 changelog](https://github.com/angular/angular/blob/main/CHANGELOG.md) |
+| Dynamic Components | `ComponentFactoryResolver` «DEPRECATED» | Удалён в v22; `createComponent` с привязками `inputBinding`, `outputBinding` | урок `ng-templates` |
+| Hydration | «Шаг 1: Добавление Angular Universal» | `@angular/ssr` (`ng add @angular/ssr`), Universal закрыт | [SSR](https://angular.dev/guide/ssr) |
+| Hybrid Rendering, SSG | Настройка через `prerender` в `angular.json` | Режим на маршрут через `ServerRoute` и `RenderMode`, параметры через `getPrerenderParams` | [Server and hybrid rendering](https://angular.dev/guide/ssr) |
+| Animation | `trigger`, `state`, `transition` из `@angular/animations` как основной способ | Пакет устарел с v20.2; `animate.enter` и `animate.leave` с CSS | [Animations](https://angular.dev/guide/animations) |
+| PWA | `SwUpdate.available` и `activated` | Удалены; `versionUpdates` с событием `VERSION_READY` | [Service worker communication](https://angular.dev/ecosystem/service-workers/communications) |
+| Повышение производительности | `NgZone.runOutsideAngular` и `trackBy` как главные приёмы | В zoneless (по умолчанию с v21) `runOutsideAngular` не нужен; `@for` требует `track` | урок `ng-performance` |
+| Testing | Karma и Jasmine по умолчанию | Новые проекты с v21 создаются с Vitest | урок `ng-testing` |
+| Routing | `RouterModule.forRoot`, классовые `CanActivate` и `CanDeactivate` | `provideRouter`, функциональные guards | [Route guards](https://angular.dev/guide/routing/route-guards) |
+| Template | Перехват изменений входа сеттером и `ngOnChanges` как основной способ | Для сигнальных входов `computed`, `effect`, `resource`, `linkedSignal` | урок `ng-lifecycle` |

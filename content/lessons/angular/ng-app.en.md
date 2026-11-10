@@ -67,6 +67,16 @@ A guard protects the interface, not the data: permission checks are still needed
 
 ## HttpClient and interceptors
 
+```mermaid
+flowchart TD
+  C["Component: http.get(url)"] --> I1["authInterceptor<br/>+ Authorization"]
+  I1 --> I2["loggingInterceptor<br/>request time"]
+  I2 --> I3["retry / cacheInterceptor"]
+  I3 --> B["HttpBackend: fetch"]
+  B -->|"the response goes back<br/>through the same chain"| I3
+  I3 --> I2 --> I1 --> C
+```
+
 `provideHttpClient(withInterceptors([...]))`. Since v22 requests go through `fetch` by default (`withFetch` is no longer needed); for upload progress there is `withXhr`. An interceptor is a function `(req, next) => next(modifiedReq)`; a request is immutable and is changed with `clone`. Interceptors run in array order on the request and in reverse order on the response.
 
 ```ts dom
