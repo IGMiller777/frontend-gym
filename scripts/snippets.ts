@@ -1,8 +1,9 @@
 import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { angularJitApplicationTransform } from '@angular/compiler-cli'
 import ts from 'typescript'
-import { stripTypes } from './typecheck'
+import { checkOptions, stripTypes } from './typecheck'
 
 /** Repo root: `js dom` examples resolve `jsdom` from the project's node_modules. */
 const ROOT = join(import.meta.dirname, '..')
@@ -55,14 +56,38 @@ function compileJsx(code: string, lang: 'jsx' | 'tsx'): string {
   }).outputText
 }
 
+/**
+ * Angular examples run in JIT mode, as the Angular CLI does for unit tests: the program is emitted with
+ * Angular's JIT transform, which downlevels decorators and declares signal inputs (`input()`, `model()`)
+ * and queries so the runtime compiler can see them.
+ */
+function compileAngular(code: string): string {
+  const name = '/example.ts'
+  const options: ts.CompilerOptions = { ...checkOptions, noEmit: false, experimentalDecorators: true, sourceMap: false, declaration: false }
+  const host = ts.createCompilerHost(options)
+  const read = host.getSourceFile.bind(host)
+  host.getSourceFile = (file, lang) => (file === name ? ts.createSourceFile(name, code, lang) : read(file, lang))
+  const program = ts.createProgram([name], options, host)
+  let js = ''
+  program.emit(program.getSourceFile(name), (file, text) => file.endsWith('.js') && (js = text), undefined, false, {
+    before: [angularJitApplicationTransform(program)],
+  })
+  return js
+}
+
 export function runSnippet(code: string, lang: Snippet['lang'] = 'js', mode: Snippet['mode'] = 'run'): string {
   const react = lang === 'jsx' || lang === 'tsx'
-  const js = react ? compileJsx(code, lang) : lang === 'ts' ? stripTypes(code) : code
+  const angular = /from '@angular\//.test(code)
+  const js = react ? compileJsx(code, lang) : angular && lang === 'ts' ? compileAngular(code) : lang === 'ts' ? stripTypes(code) : code
   const env = mode === 'dom' ? ['--import', pathToFileURL(DOM_ENV).href] : []
-  return execFileSync(process.execPath, [...env, '--input-type=module', '--no-warnings', '-e', js], {
+  // Angular packages ship partially compiled: outside the CLI they need the JIT compiler loaded first.
+  if (angular) env.push('--import', '@angular/compiler')
+  const out = execFileSync(process.execPath, [...env, '--input-type=module', '--no-warnings', '-e', js], {
     encoding: 'utf8',
     timeout: 10_000,
     cwd: ROOT,
     stdio: ['ignore', 'pipe', 'pipe'],
-  }).trimEnd()
+  })
+  // Angular's development-mode banner is not part of any example's output.
+  return (angular ? out.replace(/^Angular is running in development mode\.\n?/m, '') : out).trimEnd()
 }
