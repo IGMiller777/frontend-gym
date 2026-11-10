@@ -2,7 +2,7 @@
 
 Этот файл обновляется в каждом PR. Он отвечает на три вопроса: что уже сделано, где это лежит в коде и как добавить новое, ничего не сломав. План по этапам находится в [PLAN.md](PLAN.md), команды запуска в [README](../README.md).
 
-Последнее обновление: 2026-11-10, этап 4: трек React и компонентные задачи в песочнице.
+Последнее обновление: 2026-11-10, этап 4: треки React (уроки и компонентные задачи) и Angular.
 
 ## Что реализовано
 
@@ -14,7 +14,7 @@
 | 1. Контент-инструменты и модуль «JavaScript: основа» | готово | #4 |
 | 2. Раннер кода, 12 кодинг-задач, «Что выведет код?» с визуализатором | готово | #5 |
 | 3. Платформа и язык: 6 треков | готово: `js-async`, `typescript`, `browser`, `network`, `html`, `css` | #6–#11 |
-| 4. React, Angular, Vue (и iframe-раннер компонентов) | в работе: уроки `react` и 6 компонентных задач в iframe-песочнице готовы; далее Angular и Vue | #12, следующий |
+| 4. React, Angular, Vue (и iframe-раннер компонентов) | в работе: `react` (уроки и 6 компонентных задач в песочнице) и уроки `angular` готовы; далее Vue | #12, #13, следующий |
 | 5. Состояние, API, рендеринг, производительность, безопасность, тесты, инструменты, system design | не начато | |
 | 6. Mock-интервью | не начато | |
 | 7. Симулятор инцидентов | не начато | |
@@ -22,7 +22,7 @@
 
 ### Треки
 
-18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у восьми:
+18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у девяти:
 
 | Трек | Уроки | Аудит заметок | Кодинг-задачи | «Что выведет» |
 |---|---|---|---|---|
@@ -34,7 +34,8 @@
 | `html` | 6 | `docs/content-audit/html.md` | — | — |
 | `css` | 6 | `docs/content-audit/css.md` | — | — |
 | `react` | 6 | `docs/content-audit/react.md` (там же актуальные версии и раздел «Что устарело») | 6 (компоненты и хуки) | — |
-| остальные 10 | только обзор | — | — | — |
+| `angular` | 6 | `docs/content-audit/angular.md` (версии 19–22 и «Что устарело») | — | — |
+| остальные 9 | только обзор | — | — | — |
 
 ### Режимы
 
@@ -56,7 +57,7 @@
 | `src/components/` | `Markdown` (рендер уроков, блок вывода), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
 | `src/content/tracks.ts`, `overviews.ts` | Треки и их обзоры (RU/EN) |
 | `src/content/sources.ts` | Список официальных доменов (MDN, спецификации WHATWG, W3C, TC39, RFC, документация фреймворков), тип `Source` и `Verified` |
-| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`; `index.ts` собирает их |
+| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`, `angular.ts`; `index.ts` собирает их |
 | `content/lessons/<track>/<id>.{ru,en}.md` | Тексты уроков |
 | `src/content/coding/` | Кодинг-задачи: тесты, заготовка, эталон; `tasks-react.ts` компонентные задачи; `coding.test.ts` прогоняет эталоны в Node, `coding.react.test.ts` компонентные в jsdom |
 | `content/tasks/<id>.{ru,en}.md` | Условие и разбор задачи, разделены строкой `<!-- solution -->` |
@@ -88,6 +89,7 @@
    - ```` ```js run ```` или ```` ```ts run ````, а сразу за ним ```` ```output ````: код выполнится, вывод сравнится с текстом;
    - ```` ```js dom ```` и ```` ```output ````: то же, но на странице jsdom с адресом `https://app.example.com/` (`document`, события, Custom Elements, Shadow DOM, `document.cookie`, `localStorage`, формы и `FormData`; раскладки, стилей, `<dialog>.showModal()` и Popover API нет). Роли и доступные имена считают импортом `dom-accessibility-api` (`getRole`, `computeAccessibleName`); она не знает `<search>` и роль `<header>` внутри `<article>`;
    - ```` ```jsx dom ```` или ```` ```tsx dom ```` и ```` ```output ````: примеры React (19.3, сборка для разработки, поэтому StrictMode повторяет вызовы) на той же странице jsdom. JSX компилируется автоматическим runtime, `IS_REACT_ACT_ENVIRONMENT` включён: пример сам импортирует `act` и `createRoot` и оборачивает рендер и клики в `await act(...)`. Для серверного рендера ```` ```jsx run ```` (Node без DOM: `react-dom/server`, `react-dom/static`);
+   - примеры Angular: обычные ```` ```ts run ```` (сигналы, DI, RxJS в Node) и ```` ```ts dom ```` (компоненты, роутер, HttpClient в jsdom). Если код импортирует `@angular/*`, раннер компилирует его в JIT-режиме, как Angular CLI для модульных тестов: TS-программа с трансформом `angularJitApplicationTransform` (иначе компилятор не видит `input()`, `model()`, `output()`), Node заранее загружает `@angular/compiler`, баннер dev-режима убирается. Приложение поднимают `createApplication()` и `app.bootstrap(App)`, ждут `await app.whenStable()` (оно же дожидается `resource`);
    - ```` ```ts check ```` и ```` ```tsx check ````: код должен пройти `tsc --strict` (для TSX с типами React); строку с ожидаемой ошибкой пометить `// @ts-expect-error: пояснение`;
    - в `js run` можно импортировать пакеты из devDependencies: так в уроке CSS специфичность считает `@bramus/specificity`;
    - код в RU и EN одинаковый до символа, поэтому комментарии в коде пишутся на английском.
