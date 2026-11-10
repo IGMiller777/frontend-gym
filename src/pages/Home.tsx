@@ -1,14 +1,15 @@
 import { Bug, Code2, MessagesSquare, Terminal } from 'lucide-react'
 import { motion } from 'motion/react'
+import { Link } from 'react-router'
 import { TrackCard } from '../components/TrackCard'
 import { groupOrder, tracks } from '../content/tracks'
 import { useT } from '../i18n'
 
 const modes = [
-  { id: 'coding', icon: Code2, colors: ['#facc15', '#f97316'] },
-  { id: 'predict', icon: Terminal, colors: ['#22d3ee', '#6366f1'] },
-  { id: 'incidents', icon: Bug, colors: ['#f43f5e', '#f97316'] },
-  { id: 'interview', icon: MessagesSquare, colors: ['#a855f7', '#ec4899'] },
+  { id: 'coding', icon: Code2, colors: ['#facc15', '#f97316'], to: '/practice/coding' },
+  { id: 'predict', icon: Terminal, colors: ['#22d3ee', '#6366f1'], to: '/practice/predict' },
+  { id: 'incidents', icon: Bug, colors: ['#f43f5e', '#f97316'], to: null },
+  { id: 'interview', icon: MessagesSquare, colors: ['#a855f7', '#ec4899'], to: null },
 ] as const
 
 export default function Home() {
@@ -40,16 +41,31 @@ export default function Home() {
           {t.home.modesTitle}
         </h2>
         <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {modes.map(({ id, icon: Icon, colors }) => (
-            <li key={id} className="relative rounded-3xl border border-line bg-surface p-5 shadow-sm">
-              <span aria-hidden className="flex size-11 items-center justify-center rounded-2xl text-white shadow-md" style={{ background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})` }}>
-                <Icon size={22} />
-              </span>
-              <h3 className="mt-4 text-base font-semibold">{t.home.modes[id].title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted">{t.home.modes[id].text}</p>
-              <span className="absolute right-4 top-4 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-muted">{t.home.soon}</span>
-            </li>
-          ))}
+          {modes.map(({ id, icon: Icon, colors, to }) => {
+            const inner = (
+              <>
+                <span aria-hidden className="flex size-11 items-center justify-center rounded-2xl text-white shadow-md" style={{ background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})` }}>
+                  <Icon size={22} />
+                </span>
+                <h3 className="mt-4 text-base font-semibold">{t.home.modes[id].title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">{t.home.modes[id].text}</p>
+              </>
+            )
+            return (
+              <li key={id} className="relative">
+                {to ? (
+                  <Link to={to} className="block h-full rounded-3xl border border-line bg-surface p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    {inner}
+                  </Link>
+                ) : (
+                  <div className="h-full rounded-3xl border border-line bg-surface p-5 shadow-sm">
+                    {inner}
+                    <span className="absolute right-4 top-4 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-muted">{t.home.soon}</span>
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       </section>
 

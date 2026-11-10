@@ -13,8 +13,8 @@ interface HastNode {
 }
 const textOf = (n: HastNode): string => n.value ?? (n.children ?? []).map(textOf).join('')
 
-/** Lesson markdown: GFM tables, highlighted code, ```output blocks styled as a console. */
-export function Markdown({ children }: { children: string }) {
+/** Lesson and task markdown: GFM tables, highlighted code, ```output blocks styled as a console. */
+export function Markdown({ children, size = 'lg' }: { children: string; size?: 'base' | 'lg' }) {
   const t = useT()
   const components: Components = {
     a: ({ node: _node, href = '', ...props }) =>
@@ -52,7 +52,8 @@ export function Markdown({ children }: { children: string }) {
   return (
     <div
       className={clsx(
-        'prose prose-lg max-w-none text-ink dark:prose-invert',
+        'prose max-w-none text-ink dark:prose-invert',
+        size === 'lg' && 'prose-lg',
         'prose-headings:font-display prose-headings:text-ink prose-h2:mt-10 prose-h2:text-2xl prose-p:leading-relaxed prose-strong:text-ink prose-li:my-1',
         'prose-code:rounded-md prose-code:bg-surface-2 prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-[0.85em] prose-code:font-normal prose-code:text-ink prose-code:before:content-none prose-code:after:content-none',
       )}

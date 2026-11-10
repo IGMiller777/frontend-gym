@@ -1,11 +1,13 @@
 import clsx from 'clsx'
-import { ArrowLeft, CheckCircle2, Circle, Hammer, Swords } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Circle, Code2, Hammer, Swords } from 'lucide-react'
 import { Link, useParams } from 'react-router'
+import { DifficultyBadge } from '../components/Difficulty'
 import { ReadMore } from '../components/ReadMore'
 import { Rich } from '../components/Rich'
+import { codingTasks } from '../content/coding'
 import { getLesson, getModule } from '../content/lessons'
 import { overviews } from '../content/overviews'
-import { examDone, lessonDone, moduleProgress } from '../content/progress'
+import { codeSolved, examDone, lessonDone, moduleProgress } from '../content/progress'
 import { getTrack, type Track } from '../content/tracks'
 import { gradient } from '../design/gradient'
 import { useL, useT } from '../i18n'
@@ -73,6 +75,44 @@ function ModuleLessons({ track }: { track: Track }) {
   )
 }
 
+/** Coding tasks that belong to this track. */
+function TrackTasks({ track }: { track: Track }) {
+  const t = useT()
+  const l = useL()
+  const results = useProgress((s) => s.results)
+  const list = codingTasks.filter((x) => x.track === track.id)
+  if (!list.length) return null
+  return (
+    <section aria-labelledby="tasks" className="mt-10">
+      <h2 id="tasks" className="text-2xl font-bold">
+        {t.practice.tasksTitle}
+      </h2>
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+        {list.map((task) => (
+          <li key={task.id}>
+            <Link to={`/code/${task.id}`} className="flex h-full items-start gap-3 rounded-2xl border border-line bg-surface p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+              <Code2 size={18} aria-hidden className="mt-0.5 shrink-0 text-brand-1" />
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2">
+                  <span className="font-mono font-semibold">{l(task.title)}</span>
+                  <DifficultyBadge level={task.difficulty} />
+                </span>
+                <span className="mt-1 block text-sm leading-snug text-muted">{l(task.summary)}</span>
+              </span>
+              {codeSolved(results, task.id) && (
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 size={18} aria-hidden />
+                  <span className="sr-only">{t.practice.solved}</span>
+                </span>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 export default function TrackPage() {
   const { id = '' } = useParams()
   const t = useT()
@@ -111,6 +151,7 @@ export default function TrackPage() {
       </header>
 
       {hasModule && <ModuleLessons track={track} />}
+      <TrackTasks track={track} />
 
       <section aria-labelledby="key" className="mt-10">
         <h2 id="key" className="text-2xl font-bold">
