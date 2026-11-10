@@ -5,6 +5,8 @@ import { Layout } from './components/Layout'
 // Pages load on demand so the first screen does not pull every track's content.
 const Home = lazy(() => import('./pages/Home'))
 const TrackPage = lazy(() => import('./pages/TrackPage'))
+const LessonPage = lazy(() => import('./pages/LessonPage'))
+const ExamPage = lazy(() => import('./pages/ExamPage'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
@@ -14,6 +16,8 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="track/:id" element={<TrackPage />} />
+          <Route path="track/:id/exam" element={<ExamPage />} />
+          <Route path="learn/:id" element={<LessonPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
