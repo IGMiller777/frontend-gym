@@ -7,7 +7,7 @@
 Цепочка для `const rex = new Dog()`, где `class Dog extends Animal`:
 
 ```mermaid
-flowchart LR
+flowchart TD
   R["rex<br/>{ name }"] -->|"[[Prototype]]"| DP["Dog.prototype<br/>{ bark }"]
   DP -->|"[[Prototype]]"| AP["Animal.prototype<br/>{ eat }"]
   AP -->|"[[Prototype]]"| OP["Object.prototype<br/>{ toString, hasOwnProperty }"]

@@ -12,8 +12,8 @@ The eight types split into seven primitives and objects:
 flowchart TB
   V["Value"] --> P["Primitives<br/>copied by value, immutable"]
   V --> O["object<br/>passed by reference"]
-  P --> P1["string"] & P2["number"] & P3["bigint"] & P4["boolean"]
-  P --> P5["undefined"] & P6["symbol"] & P7["null<br/>(typeof gives 'object')"]
+  P --> PA["string · number<br/>bigint · boolean"]
+  P --> PB["undefined · symbol<br/>null (typeof gives 'object')"]
   O --> O1["plain objects, arrays,<br/>functions (typeof 'function'),<br/>Date, Map, Set, ..."]
 ```
 

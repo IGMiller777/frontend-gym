@@ -12,8 +12,8 @@
 flowchart TB
   V["Значение"] --> P["Примитивы<br/>копируются по значению, неизменяемы"]
   V --> O["object<br/>передаётся по ссылке"]
-  P --> P1["string"] & P2["number"] & P3["bigint"] & P4["boolean"]
-  P --> P5["undefined"] & P6["symbol"] & P7["null<br/>(typeof даёт 'object')"]
+  P --> PA["string · number<br/>bigint · boolean"]
+  P --> PB["undefined · symbol<br/>null (typeof даёт 'object')"]
   O --> O1["обычные объекты, массивы,<br/>функции (typeof 'function'),<br/>Date, Map, Set, ..."]
 ```
 

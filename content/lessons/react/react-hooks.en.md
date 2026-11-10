@@ -11,7 +11,7 @@ Before hooks, stateful logic (subscribing to the window size, loading data, a ti
 Each component instance has, in its Fiber node, a **list of hooks in call order**. On the first render every call to `useState`, `useEffect`, `useMemo` appends a slot to the list. On later renders React walks the list from the start: the first `useState` call gets the first slot, the second call the second one. Slots have no names, only positions.
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph F["Fiber of the Profile component"]
     H1["1: useState → 'Ann'"] --> H2["2: useEffect → subscription"] --> H3["3: useMemo → initials"]
   end

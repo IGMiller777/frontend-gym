@@ -1,11 +1,12 @@
 import type { Source } from '../sources'
+import { angularMoreLessons } from './angular-more'
 import type { Lesson, Module } from './types'
 
 const docs = (title: string, path: string): Source => ({ title: `angular.dev: ${title}`, url: `https://angular.dev/${path}`, kind: 'official' })
 const rxjs = (title: string, path: string): Source => ({ title: `rxjs.dev: ${title}`, url: `https://rxjs.dev/${path}`, kind: 'official' })
 const verified = { date: '2026-11', version: 'Angular 22.2, RxJS 7.8' }
 
-export const angularLessons: Lesson[] = [
+const baseLessons: Lesson[] = [
   {
     id: 'ng-components',
     track: 'angular',
@@ -209,6 +210,15 @@ export const angularLessons: Lesson[] = [
   },
 ]
 
+/** Path order: components and templates, reactivity, DI and RxJS, the app, quality, internals. */
+const order = [
+  'ng-components', 'ng-lifecycle', 'ng-templates', 'ng-pipes-directives', 'ng-signals', 'ng-change-detection', 'ng-di', 'ng-rxjs',
+  'ng-app', 'ng-forms', 'ng-router', 'ng-performance', 'ng-architecture', 'ng-testing', 'ng-internals',
+]
+const all = new Map([...baseLessons, ...angularMoreLessons].map((l) => [l.id, l]))
+export const angularLessons: Lesson[] = order.map((id) => all.get(id)!)
+if (angularLessons.length !== all.size || angularLessons.some((l) => !l)) throw new Error('angular: lesson order is out of sync with lesson list')
+
 export const angularModule: Module = {
   track: 'angular',
   lessons: angularLessons.map((l) => l.id),
@@ -224,6 +234,12 @@ export const angularModule: Module = {
         { q: 'Где вызов `inject()` даст ошибку `NG0203`?', options: ['В поле класса сервиса', 'В обработчике клика', 'В фабрике провайдера', 'В функциональном guard'], correct: 1, why: 'Обработчик события выполняется вне контекста внедрения; зависимость достают заранее в поле.' },
         { q: 'Какой оператор подходит для кнопки «Отправить», чтобы игнорировать повторные клики?', options: ['`switchMap`', '`exhaustMap`', '`mergeMap`', '`concatMap`'], correct: 1, why: '`exhaustMap` игнорирует новые значения, пока прошлый внутренний поток не завершился.' },
         { q: 'Как передать параметр `:id` маршрута во вход компонента без `ActivatedRoute`?', options: ['Через `@Input` и функцию-резолвер', 'Включить `withComponentInputBinding()`', 'Через `RouterModule.forChild`', 'Это возможно только при включённом SSR'], correct: 1, why: '`withComponentInputBinding()` заполняет входы из параметров пути, query и `data`.' },
+        { q: 'В каком хуке уже есть значения входов?', options: ['constructor', 'ngOnInit', 'Ни в каком', 'Только в ngAfterViewInit'], correct: 1, why: 'Входы устанавливаются после создания экземпляра, к `ngOnInit` (и первому `ngOnChanges`) они уже есть.' },
+        { q: 'Чем `canMatch` полезен для раздела админки?', options: ['Ускоряет первый рендер страницы', 'Не грузит ленивый код без прав', 'Кэширует данные раздела в памяти', 'Заменяет резолвер маршрута'], correct: 1, why: '`canMatch` решает до загрузки ленивого кода, поэтому гостю не скачивается код раздела.' },
+        { q: 'Почему чистый пайп лучше метода в шаблоне?', options: ['Его проще типизировать в шаблоне', 'Считается только при новом входе', 'Работает без импорта в компонент', 'Он выполняется асинхронно'], correct: 1, why: 'Метод в шаблоне вызывается на каждой проверке, чистый пайп мемоизирован по ссылке входа.' },
+        { q: 'Что делает санитайзер с `javascript:alert(1)` в `[href]`?', options: ['Пропускает ссылку как есть', 'Добавляет префикс `unsafe:`', 'Бросает ошибку безопасности', 'Удаляет весь элемент ссылки'], correct: 1, why: 'Небезопасный URL получает префикс `unsafe:` и не выполнится.' },
+        { q: 'Что заменило `ComponentFactoryResolver`?', options: ['Сервис ComponentLoader', '`createComponent` с классом', 'NgModuleFactory', 'Только ngComponentOutlet'], correct: 1, why: 'С Ivy компонент передают в `createComponent` напрямую; резолвер удалён в v22.' },
+        { q: 'Как задать сигнальный вход компоненту в тесте?', options: ['Присвоить полю экземпляра', '`fixture.componentRef.setInput`', 'Через TestBed.inject', 'Только через шаблон-обёртку'], correct: 1, why: '`setInput` задаёт вход так же, как родительский шаблон, и работает с `input()`.' },
       ],
       en: [
         { q: 'Since which version are Angular components standalone by default?', options: ['v14', 'v19', 'v17', 'v21'], correct: 1, why: 'In v19 the default value of `standalone` became `true`.' },
@@ -234,6 +250,12 @@ export const angularModule: Module = {
         { q: 'Where does calling `inject()` give an `NG0203` error?', options: ['In a service class field', 'In a click handler', 'In a provider factory', 'In a functional guard'], correct: 1, why: 'An event handler runs outside an injection context; get the dependency into a field beforehand.' },
         { q: 'Which operator suits a "Submit" button that must ignore repeated clicks?', options: ['`switchMap`', '`exhaustMap`', '`mergeMap`', '`concatMap`'], correct: 1, why: '`exhaustMap` ignores new values until the previous inner stream completes.' },
         { q: 'How do you pass a route\'s `:id` parameter into a component input without `ActivatedRoute`?', options: ['With `@Input` and a resolver function', 'Enable `withComponentInputBinding()`', 'Through `RouterModule.forChild`', 'It only works with SSR turned on'], correct: 1, why: '`withComponentInputBinding()` fills inputs from path parameters, query and `data`.' },
+        { q: 'In which hook are input values already available?', options: ['constructor', 'ngOnInit', 'In none of them', 'Only in ngAfterViewInit'], correct: 1, why: 'Inputs are set after the instance is created; by `ngOnInit` (and the first `ngOnChanges`) they are there.' },
+        { q: 'How does `canMatch` help an admin section?', options: ['Speeds up the first render', 'No lazy code without rights', 'Caches the section data', 'Replaces the route resolver'], correct: 1, why: '`canMatch` decides before lazy code loads, so a guest never downloads the section code.' },
+        { q: 'Why is a pure pipe better than a template method?', options: ['It is easier to type', 'Recomputes on a new input only', 'Works with no import at all', 'It always runs asynchronously'], correct: 1, why: 'A template method runs on every check, a pure pipe is memoized by input reference.' },
+        { q: 'What does the sanitizer do with `javascript:alert(1)` in `[href]`?', options: ['Lets it through', 'Adds an `unsafe:` prefix', 'Throws an error', 'Removes the element'], correct: 1, why: 'An unsafe URL gets the `unsafe:` prefix and will not run.' },
+        { q: 'What replaced `ComponentFactoryResolver`?', options: ['A ComponentLoader service', '`createComponent` with the class', 'An NgModuleFactory instance', 'Only the ngComponentOutlet'], correct: 1, why: 'Since Ivy the component is passed to `createComponent` directly; the resolver was removed in v22.' },
+        { q: 'How do you set a signal input on a component in a test?', options: ['Assign the instance field', '`fixture.componentRef.setInput`', 'Through TestBed.inject', 'Only via a wrapper template'], correct: 1, why: '`setInput` sets the input the way a parent template does and works with `input()`.' },
       ],
     },
   },

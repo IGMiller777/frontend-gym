@@ -92,7 +92,7 @@ First index-like keys (non-negative integers as strings) in ascending order, the
 ## Protecting an object
 
 ```mermaid
-flowchart LR
+flowchart TD
   O["A normal object"] -->|"Object.preventExtensions"| PE["Cannot add"]
   PE -->|"Object.seal"| S["Cannot add or delete<br/>(configurable: false)"]
   S -->|"Object.freeze"| F["Cannot change anything<br/>(writable: false)"]

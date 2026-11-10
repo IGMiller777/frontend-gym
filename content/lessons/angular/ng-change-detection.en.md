@@ -10,6 +10,16 @@ History: zoneless appeared as experimental in v18, became developer preview in v
 
 ## Zoneless: who triggers a check
 
+```mermaid
+flowchart TD
+  A["A template event (click)"] --> M["Mark the component and its ancestors"]
+  B["A signal read by the template changed"] --> M
+  C["markForCheck(), AsyncPipe,<br/>setInput"] --> M
+  M --> S["Schedule a check<br/>(one for several changes)"]
+  S --> W["Walk from the root: check<br/>marked components,<br/>skip unmarked OnPush branches"]
+  X["setTimeout, fetch, HttpClient<br/>writing a plain field"] -.->|"schedules no check"| N["the screen does not update"]
+```
+
 Without Zone.js Angular schedules a check only on explicit notifications:
 
 - a **signal** read in the template changed;

@@ -67,6 +67,16 @@ Guard защищает интерфейс, а не данные: проверк�
 
 ## HttpClient и интерсепторы
 
+```mermaid
+flowchart TD
+  C["Компонент: http.get(url)"] --> I1["authInterceptor<br/>+ Authorization"]
+  I1 --> I2["loggingInterceptor<br/>время запроса"]
+  I2 --> I3["retry / cacheInterceptor"]
+  I3 --> B["HttpBackend: fetch"]
+  B -->|"ответ идёт обратно<br/>через ту же цепочку"| I3
+  I3 --> I2 --> I1 --> C
+```
+
 `provideHttpClient(withInterceptors([...]))`. С v22 по умолчанию запросы идут через `fetch` (`withFetch` больше не нужен); для прогресса загрузки файлов есть `withXhr`. Интерсептор это функция `(req, next) => next(modifiedReq)`; запрос неизменяемый, его меняют через `clone`. Интерсепторы выполняются в порядке массива на запросе и в обратном порядке на ответе.
 
 ```ts dom

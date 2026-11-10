@@ -176,12 +176,15 @@ The order of methods and their hook replacements:
 ```mermaid
 flowchart LR
   subgraph M["Mounting"]
+    direction TB
     C1["constructor"] --> D1["getDerivedStateFromProps"] --> R1["render"] --> CDM["componentDidMount"]
   end
   subgraph U["Updating"]
+    direction TB
     D2["getDerivedStateFromProps"] --> S["shouldComponentUpdate"] --> R2["render"] --> GS["getSnapshotBeforeUpdate"] --> CDU["componentDidUpdate"]
   end
   subgraph X["Unmounting"]
+    direction TB
     CWU["componentWillUnmount"]
   end
   M --> U --> X

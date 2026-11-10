@@ -4,6 +4,18 @@ Signals became the core of Angular reactivity: component inputs, queries, forms,
 
 ## signal and computed
 
+The dependency graph: signals push a "stale" mark, while values are computed lazily on read:
+
+```mermaid
+flowchart TD
+  F["signal: firstName"] --> FN["computed: fullName"]
+  L["signal: lastName"] --> FN
+  FN --> T["component template"]
+  FN --> E["effect: save to storage"]
+  F -.->|"set(): mark dependents<br/>stale (push)"| FN
+  T -.->|"reading recomputes<br/>only what is stale (pull)"| FN
+```
+
 `signal(initial)` holds a value; reading is a call, `count()`, writing is `set` or `update`. `computed(fn)` derives a value from other signals, and it has three important properties:
 
 - **lazy**: the function does not run until the value is read;

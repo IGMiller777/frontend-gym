@@ -103,6 +103,17 @@ An `InjectionToken` with a `factory` provides itself in the root, like `provided
 
 ## The hierarchy
 
+Dependency lookup goes up: first through the element tree, then through the environment tree:
+
+```mermaid
+flowchart BT
+  C["Element injector: the component<br/>providers / viewProviders"] --> P["Parent component injector"]
+  P --> RT["Route environment injector<br/>(route providers, lazy)"]
+  RT --> R["Root: @Service(),<br/>providedIn: 'root', appConfig"]
+  R --> PL["Platform: PlatformRef, PLATFORM_ID"]
+  PL --> N["NullInjector: error NG0201<br/>(or null with optional)"]
+```
+
 There are two kinds of injectors:
 
 - **Environment injectors**: the root one (providers from `bootstrapApplication` and `providedIn: 'root'`/`@Service`), injectors of lazy routes with `providers`, and above them all the platform injector (`PlatformRef`, shared by the apps on a page). Ordinary NgModules do not create their own injector, their providers merge into the root; only lazily loaded ones get one.

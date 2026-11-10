@@ -4,6 +4,14 @@ What an Angular component looks like in 2026: standalone by default, inputs and 
 
 ## A component and its template
 
+```mermaid
+flowchart LR
+  P["Parent"] -->|"[title]=&quot;t.title&quot;<br/>input()"| C["Child component"]
+  C -->|"(toggle)=&quot;flip()&quot;<br/>output()"| P
+  P <-->|"[(value)]<br/>model()"| C
+  P -->|"content between the tags<br/>ng-content"| C
+```
+
 A component is a class with the `@Component` decorator: a selector, a template and the list of things the template uses. Since v19 all components, directives and pipes are **standalone by default**: no NgModule is needed, dependencies go into the component's own `imports`, and the app starts with `bootstrapApplication(App, config)`. NgModule remains for older code and libraries.
 
 ```ts dom

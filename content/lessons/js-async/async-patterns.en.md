@@ -7,7 +7,7 @@ Ready-made techniques on top of promises, written in interviews and in real code
 Networks and servers sometimes fail temporarily. Retrying immediately and forever is bad: a server under load gets even more requests. The right way: a limited number of attempts, a growing delay (100, 200, 400 ms) with random jitter added so that thousands of clients do not retry at the same moment, and retries only for temporary errors.
 
 ```mermaid
-flowchart LR
+flowchart TD
   T1["Attempt 1"] -->|"503"| W1["wait ~100 ms"] --> T2["Attempt 2"]
   T2 -->|"network down"| W2["wait ~200 ms"] --> T3["Attempt 3"]
   T3 -->|"200 OK"| OK["Result"]

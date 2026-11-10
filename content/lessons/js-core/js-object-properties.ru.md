@@ -92,7 +92,7 @@ console.log(Reflect.ownKeys(o).length)
 ## Защита объекта
 
 ```mermaid
-flowchart LR
+flowchart TD
   O["Обычный объект"] -->|"Object.preventExtensions"| PE["Нельзя добавлять"]
   PE -->|"Object.seal"| S["Нельзя добавлять и удалять<br/>(configurable: false)"]
   S -->|"Object.freeze"| F["Нельзя ничего менять<br/>(writable: false)"]

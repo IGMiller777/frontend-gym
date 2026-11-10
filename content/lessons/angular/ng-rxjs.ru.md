@@ -59,6 +59,16 @@ replay: 3
 
 ## switchMap, mergeMap, concatMap, exhaustMap
 
+Что делают операторы, когда новое внешнее значение приходит, пока внутренний поток ещё работает:
+
+```mermaid
+flowchart LR
+  N["Новое значение,<br/>прошлый запрос ещё идёт"] --> SW["switchMap<br/>отписаться от прошлого,<br/>начать новый (поиск)"]
+  N --> MG["mergeMap<br/>оба параллельно<br/>(независимые загрузки)"]
+  N --> CC["concatMap<br/>новый в очередь,<br/>по одному (сохранения)"]
+  N --> EX["exhaustMap<br/>игнорировать новое<br/>(повторный клик «Оплатить»)"]
+```
+
 Операторы высшего порядка превращают каждое значение во внутренний поток (обычно запрос). Различаются тем, что делают, когда приходит новое значение, а прошлый запрос ещё идёт. Один и тот же сценарий: три быстрых клика и один позже, первый запрос самый медленный:
 
 ```ts run
@@ -131,6 +141,96 @@ share B: response #3
 
 `shareReplay(1)` запоминает последнее значение и отдаёт его поздним подписчикам: кэш запроса. `share()` делит только **активную** подписку: когда источник завершился, следующий подписчик запускает его заново. С `refCount: false` подписка на источник остаётся, даже когда подписчиков нет (для бесконечных потоков это утечка). Операторы `publish`, `multicast` и `refCount()` в RxJS 7 устарели, их заменяют `share` и `connectable`.
 
+## Комбинирование потоков
+
+```mermaid
+flowchart LR
+  subgraph IN["Входы"]
+    A["a$: a1 ... a2"]
+    B["b$: b1 ......"]
+  end
+  IN --> CL["combineLatest<br/>[a1,b1], [a2,b1]:<br/>последние от всех, после первого от каждого"]
+  IN --> FJ["forkJoin<br/>одно значение [aLast,bLast],<br/>когда все завершились"]
+  IN --> WL["a$.pipe(withLatestFrom(b$))<br/>a задаёт ритм, b подмешивается"]
+  IN --> Z["zip<br/>пары по порядку: [a1,b1], [a2,b2]"]
+  IN --> M["merge<br/>все значения в одном потоке"]
+  IN --> C["concat<br/>сначала весь a$, потом b$"]
+```
+
+```ts run
+import { BehaviorSubject, Subject, combineLatest, concat, forkJoin, merge, of, withLatestFrom, zip } from 'rxjs'
+
+const filter$ = new BehaviorSubject('all')
+const page$ = new BehaviorSubject(1)
+combineLatest([filter$, page$]).subscribe(([f, p]) => console.log('combineLatest:', f, p))
+page$.next(2)
+filter$.next('done')
+
+forkJoin({ user: of('Ann'), orders: of([1, 2]) }).subscribe((r) => console.log('forkJoin:', JSON.stringify(r)))
+
+const clicks$ = new Subject<string>()
+const user$ = new BehaviorSubject('Ann')
+clicks$.pipe(withLatestFrom(user$)).subscribe(([c, u]) => console.log('withLatestFrom:', c, u))
+clicks$.next('save')
+user$.next('Bob') // does not emit by itself
+clicks$.next('send')
+
+zip(of('a', 'b', 'c'), of(1, 2)).subscribe((pair) => console.log('zip:', pair.join('')))
+merge(of('m1'), of('m2')).subscribe((v) => console.log('merge:', v))
+concat(of('first'), of('second')).subscribe((v) => console.log('concat:', v))
+```
+
+```output
+combineLatest: all 1
+combineLatest: all 2
+combineLatest: done 2
+forkJoin: {"user":"Ann","orders":[1,2]}
+withLatestFrom: save Ann
+withLatestFrom: send Bob
+zip: a1
+zip: b2
+merge: m1
+merge: m2
+concat: first
+concat: second
+```
+
+- **`combineLatest`**: вычисление из нескольких источников (фильтры, сортировка и страница списка). Молчит, пока каждый источник не выдал хотя бы одно значение.
+- **`forkJoin`**: несколько независимых запросов параллельно, результат один раз, когда все **завершились** (аналог `Promise.all`). Если источник не завершается (`interval`, `Subject`), `forkJoin` не выдаст ничего; ошибка любого источника обрывает всё.
+- **`withLatestFrom`**: действие пользователя с текущим состоянием (клик «сохранить» плюс текущая форма); второй поток сам событий не порождает.
+- **`zip`** складывает значения в пары по порядку и редко нужен в интерфейсе; **`merge`** объединяет события из разных источников; **`concat`** выполняет потоки строго по очереди.
+- В коде на сигналах вместо `combineLatest` часто достаточно `computed` от нескольких сигналов.
+
+## Планировщики
+
+Планировщик (scheduler) решает, **когда** доставить значение. По умолчанию синхронные источники (`of`, `from` массива) выдают значения сразу, внутри `subscribe`.
+
+| Планировщик | Когда выполняет | Применение |
+|---|---|---|
+| нет (синхронно) | Сразу | По умолчанию |
+| `queueScheduler` | Синхронно, но очередью (без глубокой рекурсии) | Рекурсивные операторы |
+| `asapScheduler` | Микрозадача (как `Promise.then`) | Отложить до конца текущего кода |
+| `asyncScheduler` | Задача (`setTimeout`) | `delay`, `debounceTime`, `interval` используют его |
+| `animationFrameScheduler` | Перед отрисовкой кадра (`requestAnimationFrame`) | Плавные анимации и измерения |
+
+```ts run
+import { asapScheduler, asyncScheduler, observeOn, of } from 'rxjs'
+
+const log: string[] = []
+of('sync').subscribe((v) => log.push(v))
+of('async').pipe(observeOn(asyncScheduler)).subscribe((v) => log.push(v))
+of('asap').pipe(observeOn(asapScheduler)).subscribe((v) => log.push(v))
+log.push('end of script')
+await new Promise((r) => setTimeout(r, 10))
+console.log(log.join(' → '))
+```
+
+```output
+sync → end of script → asap → async
+```
+
+`observeOn(scheduler)` переносит доставку значений, `subscribeOn` переносит саму подписку. В тестах планировщики заменяет `TestScheduler` с «мраморными» диаграммами (`'-a--b|'`), чтобы проверять время без реального ожидания.
+
 ## Ошибки
 
 Ошибка завершает поток: после `error` значений больше не будет. Поэтому `catchError` ставят внутри `switchMap` (на запрос), чтобы падение одного запроса не убило поток кликов.
@@ -182,3 +282,4 @@ fallback after 404
 - `shareReplay(1)` кэширует результат, `share` делит только активную подписку.
 - Ошибка завершает поток: `catchError` внутри, `retry({ delay })` снаружи; `firstValueFrom` вместо `toPromise`.
 - Отписка: `toSignal`, `async`, `takeUntilDestroyed`.
+- Комбинирование: `combineLatest` для вычислений из нескольких источников, `forkJoin` для параллельных завершающихся запросов, `withLatestFrom` для действия с текущим состоянием; планировщики решают, когда доставить значение (`asapScheduler` микрозадача, `asyncScheduler` задача).
