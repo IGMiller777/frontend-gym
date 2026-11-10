@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { runTests } from '../../runner/harness'
 import { typeCheck } from '../../../scripts/typecheck'
-import { codingTasks } from '.'
+import { codingTasks as allTasks } from '.'
 
+// Component tasks need a DOM: they are checked in coding.react.test.ts under jsdom.
+const codingTasks = allTasks.filter((t) => t.runtime !== 'react')
 const files = Object.fromEntries(codingTasks.flatMap((t) => [[`${t.id}.solution.ts`, t.solution], [`${t.id}.starter.ts`, t.starter]]))
 let diagnostics: Record<string, string[]> | undefined
 const diagnosticsFor = (name: string) => (diagnostics ??= typeCheck(files))[name]
