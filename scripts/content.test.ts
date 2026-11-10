@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { foldTrace } from '../src/content/predict/trace'
 import { predictProblems, quizProblems, snippetProblems, staticProblems, taskProblems } from './content-checks'
-import { extractSnippets } from './snippets'
+import { extractSnippets, runSnippet } from './snippets'
+import { typeCheck } from './typecheck'
 
 describe('content', () => {
   it('passes static checks (files, ru/en parity, sources, links, quizzes)', () => {
@@ -64,5 +65,18 @@ describe('checkers catch mistakes', () => {
       { op: 'expire', label: 'slow' },
     ])
     expect(problems.some((p) => p.includes('"fast" is due before "slow"'))).toBe(true)
+  })
+
+  it('ts examples: an unused @ts-expect-error and a real type error both fail', () => {
+    const errors = typeCheck({ 'a.ts': '// @ts-expect-error: nothing wrong\nconst a: number = 1\nconst b: string = 2' })['a.ts']
+    expect(errors.some((e) => e.includes("Unused '@ts-expect-error'"))).toBe(true)
+    expect(errors.some((e) => e.includes('not assignable'))).toBe(true)
+  })
+
+  it('reads ts check/run blocks and runs TypeScript with types erased', () => {
+    const md = '```ts check\nconst x: number = 1\n```\n\n```ts run\nconst y: string = "ok"\nconsole.log(y)\n```\n\n```output\nok\n```\n'
+    const [check, run] = extractSnippets(md)
+    expect([check.lang, check.mode, run.mode, run.expected]).toEqual(['ts', 'check', 'run', 'ok'])
+    expect(runSnippet(run.code, 'ts')).toBe('ok')
   })
 })
