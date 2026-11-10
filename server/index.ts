@@ -4,6 +4,7 @@ import { streamText } from 'hono/streaming'
 import { askSystem, buildAskPrompt, type AskRequest } from './ask'
 import { MODEL, runClaude, streamClaude } from './claude'
 import { progressStore } from './progress'
+import { buildReviewPrompt, reviewSystem, type ReviewRequest } from './review'
 
 const PORT = Number(process.env.API_PORT ?? 5901)
 const app = new Hono()
@@ -26,29 +27,36 @@ app.get('/api/health', (c) => c.json({ ok: true, model: MODEL }))
 
 route<AskRequest>('/api/ask', (b) => runClaude(buildAskPrompt(b), { system: askSystem(b.locale) }))
 
-// Plain-text stream. Errors before the first chunk are a JSON 500;
-// later ones are appended after a NUL separator so the client can tell them from the text.
-app.post('/api/ask/stream', async (c) => {
-  const body = await c.req.json<AskRequest>()
-  const gen = streamClaude(buildAskPrompt(body), { system: askSystem(body.locale) })
-  let first: IteratorResult<string>
-  try {
-    first = await gen.next()
-  } catch (e) {
-    console.error(e)
-    return c.json({ error: (e as Error).message }, 500)
-  }
-  return streamText(c, async (s) => {
-    s.onAbort(() => void gen.return(undefined))
+/**
+ * Plain-text stream route. Errors before the first chunk are a JSON 500;
+ * later ones are appended after a NUL separator so the client can tell them from the text.
+ */
+function streamRoute<T>(path: string, build: (body: T) => { prompt: string; system: string }) {
+  app.post(path, async (c) => {
+    const { prompt, system } = build(await c.req.json<T>())
+    const gen = streamClaude(prompt, { system })
+    let first: IteratorResult<string>
     try {
-      if (!first.done) await s.write(first.value)
-      for await (const chunk of gen) await s.write(chunk)
+      first = await gen.next()
     } catch (e) {
       console.error(e)
-      await s.write(`\0${(e as Error).message}`)
+      return c.json({ error: (e as Error).message }, 500)
     }
+    return streamText(c, async (s) => {
+      s.onAbort(() => void gen.return(undefined))
+      try {
+        if (!first.done) await s.write(first.value)
+        for await (const chunk of gen) await s.write(chunk)
+      } catch (e) {
+        console.error(e)
+        await s.write(`\0${(e as Error).message}`)
+      }
+    })
   })
-})
+}
+
+streamRoute<AskRequest>('/api/ask/stream', (b) => ({ prompt: buildAskPrompt(b), system: askSystem(b.locale) }))
+streamRoute<ReviewRequest>('/api/review/stream', (b) => ({ prompt: buildReviewPrompt(b), system: reviewSystem(b.locale) }))
 
 // Player progress: a file in data/ so it survives clearing the browser.
 app.get('/api/progress/:name', async (c) => {
