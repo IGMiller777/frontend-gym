@@ -32,6 +32,14 @@ export interface CodingTask {
   /** Reference solution, shown after the task is solved or on request. */
   solution: string
   tests: CodingTest[]
+  /**
+   * `react`: a component task. The code and the tests are TSX, run in a sandboxed iframe with React
+   * (see src/runner/react-frame.ts); tests get `render`, `screen`, `user`, `waitFor` (src/runner/dom-testing.ts).
+   * Default: plain TypeScript in a Web Worker.
+   */
+  runtime?: 'react'
+  /** Component export shown in the live preview (component tasks only). */
+  preview?: string
   sources: Source[]
   verified: Verified
 }

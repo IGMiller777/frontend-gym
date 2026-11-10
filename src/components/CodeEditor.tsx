@@ -33,23 +33,23 @@ const theme = EditorView.theme({
 })
 
 /**
- * CodeMirror 6 editor for TypeScript. Uncontrolled: `initial` sets the starting text,
+ * CodeMirror 6 editor for TypeScript (TSX with `jsx`). Uncontrolled: `initial` sets the starting text,
  * remount it with a new `key` to reset. Mod+Enter calls `onRun`.
  * Tab indents; Escape then Tab moves focus out (CodeMirror's keyboard escape hatch).
  */
-export function CodeEditor({ initial, onChange, onRun, label, describedBy }: { initial: string; onChange: (code: string) => void; onRun?: () => void; label: string; describedBy?: string }) {
+export function CodeEditor({ initial, onChange, onRun, label, describedBy, jsx = false }: { initial: string; onChange: (code: string) => void; onRun?: () => void; label: string; describedBy?: string; jsx?: boolean }) {
   const host = useRef<HTMLDivElement>(null)
   // Latest callbacks without recreating the editor.
   const cb = useRef({ onChange, onRun })
   // Read once at mount: the editor owns its text afterwards.
-  const setup = useRef({ initial, label, describedBy })
+  const setup = useRef({ initial, label, describedBy, jsx })
   useEffect(() => {
     cb.current = { onChange, onRun }
   })
 
   useEffect(() => {
     if (!host.current) return
-    const { initial, label, describedBy } = setup.current
+    const { initial, label, describedBy, jsx } = setup.current
     const view = new EditorView({
       parent: host.current,
       state: EditorState.create({
@@ -57,7 +57,7 @@ export function CodeEditor({ initial, onChange, onRun, label, describedBy }: { i
         extensions: [
           keymap.of([{ key: 'Mod-Enter', preventDefault: true, run: () => (cb.current.onRun?.(), true) }, indentWithTab]),
           basicSetup,
-          javascript({ typescript: true }),
+          javascript({ typescript: true, jsx }),
           syntaxHighlighting(highlight),
           theme,
           EditorState.tabSize.of(2),

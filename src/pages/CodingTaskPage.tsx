@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ArrowLeft, Bot, CheckCircle2, Circle, Clock, EyeOff, Lock, Play, RotateCcw, Square, XCircle } from 'lucide-react'
+import { ArrowLeft, Bot, CheckCircle2, Circle, Clock, Eye, EyeOff, Lock, Play, RotateCcw, Square, XCircle } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { CodeEditor } from '../components/CodeEditor'
@@ -15,6 +15,7 @@ import { useL, useLocale, useT } from '../i18n'
 import { AI_ENABLED, streamApi } from '../lib/api'
 import type { RunResult } from '../runner/harness'
 import { runInWorker } from '../runner/run'
+import { mountPreview, runInFrame } from '../runner/run-frame'
 import { useProgress } from '../store'
 
 /** The learner's code survives a reload; per-browser convenience, so localStorage is enough. */
@@ -88,7 +89,8 @@ function TaskView({ task }: { task: CodingTask }) {
   const runTests = async () => {
     if (running) return
     setRunning(true)
-    const result = await runInWorker(
+    const runner = task.runtime === 'react' ? runInFrame : runInWorker
+    const result = await runner(
       code,
       task.tests.map((x) => ({ code: x.code, fakeTimers: x.fakeTimers })),
     )
@@ -197,7 +199,7 @@ function TaskView({ task }: { task: CodingTask }) {
                 )}
               </>
             ) : open ? (
-              <Markdown size="base">{`## ${t.code.reference}\n\n\`\`\`ts\n${task.solution}\`\`\`\n\n${body.walkthrough}`}</Markdown>
+              <Markdown size="base">{`## ${t.code.reference}\n\n\`\`\`${task.runtime === 'react' ? 'tsx' : 'ts'}\n${task.solution}\`\`\`\n\n${body.walkthrough}`}</Markdown>
             ) : (
               <div className="rounded-3xl border border-dashed border-line bg-surface p-6 text-center">
                 <Lock size={28} aria-hidden className="mx-auto text-brand-1" />
@@ -217,7 +219,7 @@ function TaskView({ task }: { task: CodingTask }) {
           <div className="overflow-hidden rounded-3xl border border-line shadow-sm">
             <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
               <span className="px-1 text-sm font-semibold">{t.code.editor}</span>
-              <span className="text-xs text-muted">TypeScript</span>
+              <span className="text-xs text-muted">{task.runtime === 'react' ? 'TSX · React 19' : 'TypeScript'}</span>
               <button type="button" onClick={reset} className="ml-auto inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-muted transition hover:bg-surface-2 hover:text-ink">
                 <RotateCcw size={14} aria-hidden /> {t.code.reset}
               </button>
@@ -231,7 +233,7 @@ function TaskView({ task }: { task: CodingTask }) {
               </button>
             </div>
             <div className="h-[26rem]">
-              <CodeEditor key={editorKey} initial={code} onChange={onChange} onRun={runTests} label={t.code.editorLabel} describedBy={hintId} />
+              <CodeEditor key={editorKey} initial={code} onChange={onChange} onRun={runTests} label={t.code.editorLabel} describedBy={hintId} jsx={task.runtime === 'react'} />
             </div>
           </div>
           <p id={hintId} className="px-2 text-xs text-muted">
@@ -240,9 +242,41 @@ function TaskView({ task }: { task: CodingTask }) {
 
           <Results task={task} run={run} running={running} allPassed={allPassed} passed={passed} />
 
+          {task.runtime === 'react' && task.preview && <Preview code={code} component={task.preview} />}
+
           {AI_ENABLED && run && !run.error && !run.timedOut && <Review task={task} code={code} run={run} statement={body?.statement ?? ''} />}
         </section>
       </div>
+    </div>
+  )
+}
+
+/** Live preview of the learner's component in its own sandbox; rebuilt on demand, not on every keystroke. */
+function Preview({ code, component }: { code: string; component: string }) {
+  const t = useT()
+  const host = useRef<HTMLDivElement>(null)
+  const latest = useRef(code)
+  const [version, setVersion] = useState(0)
+  useEffect(() => {
+    latest.current = code
+  })
+  useEffect(() => {
+    if (!version || !host.current) return
+    return mountPreview(host.current, latest.current, component)
+  }, [version, component])
+
+  return (
+    <div className="rounded-3xl border border-line bg-surface p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3">
+        <span aria-hidden className="flex size-9 items-center justify-center rounded-xl bg-brand text-white">
+          <Eye size={18} />
+        </span>
+        <p className="min-w-0 flex-1 text-sm text-muted">{t.code.previewHint(component)}</p>
+        <button type="button" onClick={() => setVersion((v) => v + 1)} className="rounded-full border border-line px-4 py-1.5 text-sm font-semibold transition hover:bg-surface-2">
+          {version ? t.code.previewRefresh : t.code.preview}
+        </button>
+      </div>
+      <div ref={host} className={clsx(version > 0 && 'mt-3')} />
     </div>
   )
 }
