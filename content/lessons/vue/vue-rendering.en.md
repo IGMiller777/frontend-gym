@@ -4,6 +4,15 @@ How Vue turns a template into DOM and why it needs almost no manual optimization
 
 ## Template → render function → Virtual DOM → DOM
 
+```mermaid
+flowchart TD
+  T["SFC template"] -->|"build: @vitejs/plugin-vue"| RF["render function<br/>with statics and patch flags"]
+  RF -->|"runs inside the component effect"| VN["VNode tree"]
+  VN -->|"first render: mount"| D1["Create the DOM, onMounted"]
+  VN -->|"re-render"| DIFF["Compare with the previous tree<br/>only over the block's dynamic nodes"]
+  DIFF --> PATCH["Patch the changed DOM nodes,<br/>onUpdated"]
+```
+
 1. **Compilation.** The template becomes a render function. In a Vite project this happens at build time (the `@vitejs/plugin-vue` plugin); the compiler never reaches the browser. Compiling on the fly is needed only by the full Vue build with string templates.
 2. **Render.** The render function runs inside the component's reactive effect and returns a tree of VNodes; everything reactive it read becomes the component's dependencies.
 3. **Patch.** The new tree is compared with the old one, and the difference goes into the DOM.
@@ -79,6 +88,49 @@ after label change: { parentRenders: 3, childRenders: 2 }
 - The child did not render until its `label` prop changed. Vue does not need an equivalent of `React.memo`.
 - New objects and functions in props still make the child update: `:options="{ a: 1 }"` in a template creates an object on every render; such values go into a `computed` or a constant.
 
+## What causes a re-render and what does not
+
+```js dom
+import { createApp, nextTick, reactive } from 'vue'
+
+let renders = 0
+let plain = 0
+const state = reactive({ shown: 'a', hidden: 'x' })
+const el = document.createElement('div')
+const vm = createApp({
+  render() {
+    renders++
+    return `${state.shown} / plain ${plain}`
+  },
+}).mount(el)
+
+state.hidden = 'y' // reactive, but the render never read it
+plain++ // not reactive at all
+await nextTick()
+console.log('after hidden and plain changes:', renders, '|', el.textContent)
+state.shown = 'b'
+await nextTick()
+console.log('after shown change:', renders, '|', el.textContent)
+vm.$forceUpdate() // escape hatch: re-render without a reactive change
+await nextTick()
+console.log('after $forceUpdate:', renders)
+```
+
+```output
+after hidden and plain changes: 1 | a / plain 0
+after shown change: 2 | b / plain 1
+after $forceUpdate: 3
+```
+
+| Causes a component render | Does not |
+|---|---|
+| A change to a `ref`/`reactive` read **during this render** | A change to reactive data the render did not read (`state.hidden`) |
+| A change to a `computed` read during render, if its value really changed | A change to plain variables (`let plain`): Vue does not know about them |
+| New prop values (shallow comparison) or slots | A parent render, if the child's props did not change |
+| `$forceUpdate()` (an escape hatch) | Mutating the original object, bypassing the `reactive` proxy |
+
+The plain variable reached the screen (`plain 1`) only because a render happened for another reason. This is what the "data changed but the screen did not" bug looks like: the state is not reactive. The right fix is to make it a `ref`, not to call `$forceUpdate` (in `<script setup>` you would also have to reach the instance through `getCurrentInstance`, which is not meant for application code).
+
 ## Manual hints
 
 - `v-once` renders an element once and never updates it.
@@ -96,5 +148,6 @@ Vue 3.6, currently a release candidate, adds **Vapor Mode**: an optional SFC com
 - Templates are compiled at build time; the render function runs in the component's reactive effect.
 - The compiler caches static content and handlers, sets patch flags and collects dynamic nodes into blocks.
 - A component re-renders only because of its own dependencies or changed props; children do not render along with the parent.
+- Data not read during render and non-reactive data do not trigger a render; `$forceUpdate` hides non-reactive state.
 - Updates are batched into one pass; `v-once`, `v-memo`, `shallowRef` for special cases.
 - Vapor Mode in 3.6 (RC) removes the Virtual DOM for chosen components.

@@ -2,7 +2,7 @@
 
 Этот файл обновляется в каждом PR. Он отвечает на три вопроса: что уже сделано, где это лежит в коде и как добавить новое, ничего не сломав. План по этапам находится в [PLAN.md](PLAN.md), команды запуска в [README](../README.md).
 
-Последнее обновление: 2026-11-10, проход покрытия Angular: 9 новых уроков (жизненный цикл, шаблоны и динамические компоненты, пайпы и директивы, формы, роутер, производительность и PWA, архитектура и безопасность, тестирование, внутреннее устройство), RxJS дополнен комбинированием и планировщиками, схемы во всех уроках Angular.
+Последнее обновление: 2026-11-10, проход покрытия Vue: 6 новых уроков (шаблоны и директивы, жизненный цикл, встроенные компоненты, Options и Composition API с Vue 2 против Vue 3, Vue Router подробно, производительность, доступность и безопасность), разделы о track/trigger, ререндере, watchPostEffect и watchSyncEffect, пропсах и `$attrs` в старых уроках, схемы во всех уроках Vue. Тесты задач like-button и debounce больше не зависят от гонок таймеров.
 
 ## Что реализовано
 
@@ -22,7 +22,7 @@
 
 ### Треки
 
-18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у десяти. Число уроков в треке определяется таблицей покрытия заметок в аудите (все темы из Notion плюс основные вопросы собеседований), а не шаблоном; проход покрытия сделан для JS, React и Angular, Vue на очереди:
+18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у десяти. Число уроков в треке определяется таблицей покрытия заметок в аудите (все темы из Notion плюс основные вопросы собеседований), а не шаблоном; проход покрытия сделан для JS, React, Angular и Vue:
 
 | Трек | Уроки | Аудит заметок | Кодинг-задачи | «Что выведет» |
 |---|---|---|---|---|
@@ -35,7 +35,7 @@
 | `css` | 6 | `docs/content-audit/css.md` | — | — |
 | `react` | 15 | `docs/content-audit/react.md` (версии, «Что устарело», таблица покрытия страницы «React») | 6 (компоненты и хуки) | — |
 | `angular` | 15 | `docs/content-audit/angular.md` (версии 19–22, «Что устарело», таблица покрытия страницы «Angular») | — | — |
-| `vue` | 6 | `docs/content-audit/vue.md` (Vue 3.5, 3.6 RC, Router 5, Pinia 4) | — | — |
+| `vue` | 12 | `docs/content-audit/vue.md` (Vue 3.5, 3.6 RC, Router 5, Pinia 4, таблица покрытия страницы «Vue.js») | — | — |
 | остальные 8 | только обзор | — | — | — |
 
 ### Режимы
@@ -60,7 +60,7 @@
 | `src/components/` | `Markdown` (рендер уроков, блок вывода), `Diagram` (блоки `mermaid`: Mermaid грузится лениво, тема из токенов `--surface`, `--ink`, `--brand-*`, перерисовка при смене темы, натуральный размер с горизонтальной прокруткой), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
 | `src/content/tracks.ts`, `overviews.ts` | Треки и их обзоры (RU/EN) |
 | `src/content/sources.ts` | Список официальных доменов (MDN, спецификации WHATWG, W3C, TC39, RFC, документация фреймворков), тип `Source` и `Verified` |
-| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `react.ts` и `angular.ts` (порядок уроков задаёт массив `order`), `js-core-more.ts`, `react-more.ts` и `angular-more.ts` (уроки прохода покрытия), `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`, `angular.ts`, `vue.ts`; `index.ts` собирает их |
+| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `react.ts`, `angular.ts` и `vue.ts` (порядок уроков задаёт массив `order`), `js-core-more.ts`, `react-more.ts`, `angular-more.ts` и `vue-more.ts` (уроки прохода покрытия), `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`, `angular.ts`, `vue.ts`; `index.ts` собирает их |
 | `content/lessons/<track>/<id>.{ru,en}.md` | Тексты уроков |
 | `src/content/coding/` | Кодинг-задачи: тесты, заготовка, эталон; `tasks-core.ts`, `tasks-async.ts`, `tasks-more.ts` (задачи из GFE 75 и LRU), `tasks-dom.ts` (DOM-задачи), `tasks-react.ts` (компонентные); `coding.test.ts` прогоняет эталоны в Node, `coding.dom.test.ts` и `coding.react.test.ts` в jsdom |
 | `content/tasks/<id>.{ru,en}.md` | Условие и разбор задачи, разделены строкой `<!-- solution -->` |
@@ -95,7 +95,7 @@
    - ```` ```js dom ```` и ```` ```output ````: то же, но на странице jsdom с адресом `https://app.example.com/` (`document`, события, Custom Elements, Shadow DOM, `document.cookie`, `localStorage`, формы и `FormData`; раскладки, стилей, `<dialog>.showModal()` и Popover API нет). Роли и доступные имена считают импортом `dom-accessibility-api` (`getRole`, `computeAccessibleName`); она не знает `<search>` и роль `<header>` внутри `<article>`;
    - ```` ```jsx dom ```` или ```` ```tsx dom ```` и ```` ```output ````: примеры React (19.3, сборка для разработки, поэтому StrictMode повторяет вызовы) на той же странице jsdom. JSX компилируется автоматическим runtime, `IS_REACT_ACT_ENVIRONMENT` включён: пример сам импортирует `act` и `createRoot` и оборачивает рендер и клики в `await act(...)`. Для серверного рендера ```` ```jsx run ```` (Node без DOM: `react-dom/server`, `react-dom/static`);
    - примеры Angular: обычные ```` ```ts run ```` (сигналы, DI, RxJS в Node) и ```` ```ts dom ```` (компоненты, роутер, HttpClient в jsdom). Если код импортирует `@angular/*`, раннер компилирует его в JIT-режиме, как Angular CLI для модульных тестов: TS-программа с трансформом `angularJitApplicationTransform` (иначе компилятор не видит `input()`, `model()`, `output()`), Node заранее загружает `@angular/compiler`, баннер dev-режима убирается. Приложение поднимают `createApplication()` и `app.bootstrap(App)`, ждут `await app.whenStable()` (оно же дожидается `resource`);
-   - примеры Vue: ```` ```js run ```` или ```` ```ts run ```` (реактивность, Pinia, `vue/server-renderer`, `vue/compiler-sfc`) и ```` ```js dom ```` (компоненты через `createApp` со строковым шаблоном, Vue Router с `createMemoryHistory`). Шаблоны компилируются во время выполнения: Node-сборка `vue` содержит компилятор. Макросы `<script setup>` (`defineProps`, `defineModel`) показывают обычным блоком ```` ```vue ````, а запускаемый пример пишут тем же API без макросов (`useModel` вместо `defineModel`). В окружении jsdom есть глобальные `history` и `location`;
+   - примеры Vue: ```` ```js run ```` или ```` ```ts run ```` (реактивность, Pinia, `vue/server-renderer`, `vue/compiler-sfc`) и ```` ```js dom ```` (компоненты через `createApp` со строковым шаблоном, Vue Router с `createMemoryHistory`). Шаблоны компилируются во время выполнения: Node-сборка `vue` содержит компилятор. Макросы `<script setup>` (`defineProps`, `defineModel`) показывают обычным блоком ```` ```vue ````, а запускаемый пример пишут тем же API без макросов (`useModel` вместо `defineModel`). В окружении jsdom есть глобальные `history` и `location`; `click()` по чекбоксу в jsdom меняет его и шлёт `change`, только если элемент вставлен в документ (`document.body.append(el)`);
    - ```` ```ts check ```` и ```` ```tsx check ````: код должен пройти `tsc --strict` (для TSX с типами React); строку с ожидаемой ошибкой пометить `// @ts-expect-error: пояснение`;
    - в `js run` можно импортировать пакеты из devDependencies: так в уроке CSS специфичность считает `@bramus/specificity`;
    - в примерах React доступны React Router (`createMemoryRouter`, `RouterProvider` из `react-router/dom`), TanStack Query, MSW (`msw/node`), Testing Library (`render`, `screen`, `renderHook`) и `user-event`. Пример с TanStack Query задаёт `gcTime: Infinity`, иначе пятиминутные таймеры кэша не дают процессу завершиться за 10 с;
@@ -166,7 +166,7 @@
 ## Известные ограничения
 
 - Чанк страницы задачи около 519 КБ (CodeMirror).
-- Главный чанк около 809 КБ (243 КБ gzip): в нём метаданные всех уроков, квизы, экзамены и данные задач (для XP в шапке и списков). На `main` до прохода покрытия JS было около 642 КБ. Тексты уроков и Mermaid (около 100 КБ) грузятся лениво. Вынести квизы и задачи в ленивые чанки стоит отдельной задачей.
+- Главный чанк около 838 КБ (252 КБ gzip): в нём метаданные всех уроков, квизы, экзамены и данные задач (для XP в шапке и списков). На `main` до прохода покрытия JS было около 642 КБ. Тексты уроков и Mermaid (около 100 КБ) грузятся лениво. Вынести квизы и задачи в ленивые чанки стоит отдельной задачей.
 - Песочница компонентов: `<iframe sandbox="allow-scripts allow-forms">` без `allow-same-origin`, у фрейма непрозрачный origin, доступа к странице, `localStorage` и cookies нет. Страница сама скачивает бандл и передаёт код во фрейм через `postMessage`, поэтому из фрейма не уходит ни одного запроса (встроенный браузер Claude такие запросы блокирует). Отправка формы без `preventDefault` не уводит фрейм, а пишет предупреждение в консоль задачи.
 - В песочнице production-сборка React: предупреждения разработки (ключи, `act`) там не появляются; в CI задачи идут на dev-сборке в jsdom.
 - Бесконечный цикл в компоненте: тайм-аут 6 с сработает, только если браузер выполняет фрейм в отдельном процессе; иначе вкладка зависнет, как от бесконечного цикла на обычной странице. Логические задачи без DOM по-прежнему идут в Web Worker и от этого защищены. Vue-задачи пока не сделаны.

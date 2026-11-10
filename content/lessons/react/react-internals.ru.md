@@ -133,15 +133,18 @@ function Pair() {
 }
 
 const el = document.createElement('div')
+const until = async (text) => {
+  while (el.textContent !== text) await new Promise((r) => setTimeout(r, 5))
+}
 createRoot(el).render(<Pair />)
-await new Promise((r) => setTimeout(r, 10))
+await until('00')
 renders = 0
 
 setTimeout(() => {
   setA(1)
   setB(1)
 }, 0)
-await new Promise((r) => setTimeout(r, 10))
+await until('11') // wait for the DOM instead of guessing a delay
 console.log('two setState in a timer:', renders, 'render(s)')
 
 renders = 0

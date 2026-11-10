@@ -49,3 +49,52 @@
 - Composables как замена миксинам, VueUse, Pinia: setup-сторы, `storeToRefs`, плагины.
 - Компилятор и рендер: поднятие статики, patch flags, планировщик, `v-memo`, `v-once`, Vapor Mode в 3.6.
 - Vue Router 5 (файловые маршруты в ядре, guards), SSR и Nuxt 4, ленивая гидратация, тесты на Vitest и Vue Test Utils.
+
+## Покрытие заметок Notion (второй проход)
+
+Второй проход (ноябрь 2026) по правилу «все темы из заметок плюс основные вопросы собеседований» добавил 6 уроков (теперь их 12), разделы в 5 старых уроках и схемы во все уроки. Каждая тема страницы «Vue.js» и место, где она разобрана:
+
+| Тема в заметках | Где разобрано |
+|---|---|
+| Directives | `vue-template-syntax#Анатомия директивы`, `#Остальные встроенные директивы`, `#Собственные директивы` |
+| Списки | `vue-template-syntax#Привязки, условия и списки`, `#Ключи в v-for` |
+| Обработка событий | `vue-template-syntax#События` |
+| Наблюдатели | `vue-watchers` целиком |
+| Асинхронные компоненты и SSR | `vue-built-ins#Асинхронные компоненты`, `#Suspense`, `vue-app#SSR и гидратация` |
+| Composables | `vue-composables#Composable`, `#Области эффектов и очистка` |
+| Встроенные компоненты | `vue-built-ins` целиком |
+| Роутинг | `vue-router` целиком |
+| Render: схема, этапы Template → Render → VDOM → Diff → Patch | `vue-rendering#Шаблон → render-функция → Virtual DOM → DOM` (схема и вывод компилятора) |
+| Первичный рендер и ререндер, хуки при них | `vue-lifecycle#Порядок у родителя и ребёнка` |
+| Оптимизация: отслеживание зависимостей, `v-once`, `v-memo` | `vue-rendering#Ручные подсказки`, `vue-best-practices#Производительность: две разные задачи` |
+| Асинхронность рендера, батчинг, `nextTick` | `vue-watchers#Когда выполняется: flush и nextTick`, `vue-rendering#Какие компоненты рендерятся` |
+| Что вызывает ререндер (ref, reactive, props, computed, `$forceUpdate`) | `vue-rendering#Что вызывает повторный рендер, а что нет` |
+| Что не вызывает ререндер (обычные переменные, неиспользуемые данные) | там же, проверено запуском |
+| Хуки жизненного цикла по фазам, связь с ререндером, `setup` один раз | `vue-lifecycle` целиком |
+| `ref`: когда использовать, разворачивание в шаблоне | `vue-reactivity#ref и reactive`, `#Разворачивание ref` |
+| `reactive`: ограничения, деструктуризация, переприсвоение, `toRefs` | `vue-reactivity#Где теряется реактивность` |
+| Что лучше: `ref` или `reactive` | `vue-reactivity#ref и reactive` |
+| Что такое эффект, `activeEffect` | `vue-reactivity#Как Vue узнаёт о зависимостях` (модель track/trigger, выполняется) |
+| `computed`: ленивость, кэш, чистота, синхронность, writable | `vue-reactivity#computed` |
+| `watch`: источники, опции, use cases, остановка | `vue-watchers#watch и watchEffect`, `#Глубина: deep, getter, once`, `#Очистка и гонки` |
+| `watchEffect` и cleanup с `AbortController` | `vue-watchers#Очистка и гонки` |
+| `watchPostEffect`, `watchSyncEffect` | `vue-watchers#watchEffect, watchPostEffect, watchSyncEffect` |
+| Сравнительная таблица всех эффектов | `vue-watchers#Сравнение всех эффектов` |
+| Производительность (ссылка) | `vue-best-practices#Производительность: две разные задачи` |
+| Доступность (ссылка) | `vue-best-practices#Доступность` |
+| Безопасность (ссылка) | `vue-best-practices#Безопасность` |
+
+Добавлено сверх заметок, потому что об этом спрашивают на собеседованиях: Options API против Composition API, миксины, отличия Vue 2 и Vue 3, плагины (`vue-options-vs-composition`); валидация пропсов, проброс атрибутов, обобщённые компоненты (`vue-components`); полный порядок guards, ошибки навигации, синтаксис путей (`vue-router`); обработка ошибок (`vue-lifecycle`); режимы рендера Nuxt и тесты (`vue-app`).
+
+## Ошибки, найденные во втором проходе
+
+| Раздел | В заметках | На самом деле | Источник |
+|---|---|---|---|
+| Таблица эффектов | `watchPostEffect`: «Выполнение сразу: Да» | Первый запуск тоже откладывается до окончания рендера (`flush: 'post'`): при создании ничего не выполняется | проверено запуском, [Watchers](https://vuejs.org/guide/essentials/watchers.html#post-watchers) |
+| Таблица эффектов | `computed`: «Доступ к old/new: Нет» | С 3.4 геттер `computed` получает предыдущее значение первым аргументом | [Computed: getting the previous value](https://vuejs.org/guide/essentials/computed.html#getting-the-previous-value) |
+| watch | `watch(state, …, { deep: true })` для `reactive` | Для `reactive` наблюдатель и так глубокий; `deep: true` лишний | [Deep watchers](https://vuejs.org/guide/essentials/watchers.html#deep-watchers), проверено запуском |
+| watch | «Без deep не сработает» для `ref` с объектом | Верно, но с 3.5 `deep` может быть числом уровней, а не только `true` | там же |
+| Хуки | `beforeMount`: «Шаблон скомпилирован» | В проекте на Vite шаблон скомпилирован ещё при сборке; в `beforeMount` готова render-функция, DOM ещё нет | [Rendering mechanism](https://vuejs.org/guide/extras/rendering-mechanism.html) |
+| Хуки | `updated`: «изменение state вызовет бесконечный цикл» | Цикл только если каждое обновление снова меняет состояние; в разработке Vue останавливает его ошибкой о превышении числа рекурсивных обновлений | [Lifecycle](https://vuejs.org/guide/essentials/lifecycle.html) |
+| Ререндер | Порядок хуков при ререндере без упоминания детей | `onBeforeUpdate` идёт сверху вниз, `onUpdated` снизу вверх; ребёнок обновляется только при изменении своих пропсов или зависимостей | проверено запуском |
+| Ререндер | `$forceUpdate` как способ обновления | Маскирует нереактивное состояние; правильнее сделать данные `ref` | [Reactivity in depth](https://vuejs.org/guide/extras/reactivity-in-depth.html) |

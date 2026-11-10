@@ -4,6 +4,15 @@
 
 ## Шаблон → render-функция → Virtual DOM → DOM
 
+```mermaid
+flowchart TD
+  T["Шаблон SFC"] -->|"сборка: @vitejs/plugin-vue"| RF["render-функция<br/>со статикой и patch flags"]
+  RF -->|"запуск в эффекте компонента"| VN["Дерево VNode"]
+  VN -->|"первый рендер: mount"| D1["Создание DOM, onMounted"]
+  VN -->|"повторный рендер"| DIFF["Сравнение с прошлым деревом<br/>только по динамическим узлам блока"]
+  DIFF --> PATCH["Патч изменившихся узлов DOM,<br/>onUpdated"]
+```
+
 1. **Компиляция.** Шаблон превращается в render-функцию. В проекте на Vite это происходит при сборке (плагин `@vitejs/plugin-vue`); компилятор в браузер не попадает. Компиляция на лету нужна только полной сборке Vue со строковыми шаблонами.
 2. **Рендер.** Render-функция выполняется внутри реактивного эффекта компонента и возвращает дерево VNode; всё реактивное, что она прочитала, становится зависимостями компонента.
 3. **Патч.** Новое дерево сравнивается со старым, и в DOM вносится разница.
@@ -79,6 +88,49 @@ after label change: { parentRenders: 3, childRenders: 2 }
 - Дочерний компонент не рендерился, пока его проп `label` не изменился. Аналог `React.memo` в Vue не нужен.
 - Новые объекты и функции в пропсах всё же заставляют ребёнка обновиться: `:options="{ a: 1 }"` в шаблоне создаёт объект на каждом рендере; такие значения выносят в `computed` или константы.
 
+## Что вызывает повторный рендер, а что нет
+
+```js dom
+import { createApp, nextTick, reactive } from 'vue'
+
+let renders = 0
+let plain = 0
+const state = reactive({ shown: 'a', hidden: 'x' })
+const el = document.createElement('div')
+const vm = createApp({
+  render() {
+    renders++
+    return `${state.shown} / plain ${plain}`
+  },
+}).mount(el)
+
+state.hidden = 'y' // reactive, but the render never read it
+plain++ // not reactive at all
+await nextTick()
+console.log('after hidden and plain changes:', renders, '|', el.textContent)
+state.shown = 'b'
+await nextTick()
+console.log('after shown change:', renders, '|', el.textContent)
+vm.$forceUpdate() // escape hatch: re-render without a reactive change
+await nextTick()
+console.log('after $forceUpdate:', renders)
+```
+
+```output
+after hidden and plain changes: 1 | a / plain 0
+after shown change: 2 | b / plain 1
+after $forceUpdate: 3
+```
+
+| Вызывает рендер компонента | Не вызывает |
+|---|---|
+| Изменение `ref`/`reactive`, прочитанного **при этом рендере** | Изменение реактивных данных, которые рендер не читал (`state.hidden`) |
+| Изменение `computed`, прочитанного при рендере, если его значение действительно изменилось | Изменение обычных переменных (`let plain`): Vue о них не знает |
+| Новые значения пропсов (поверхностное сравнение) или слотов | Рендер родителя, если пропсы ребёнка не изменились |
+| `$forceUpdate()` (аварийный выход) | Мутация исходного объекта в обход прокси `reactive` |
+
+Обычная переменная попала на экран (`plain 1`) только потому, что рендер случился по другой причине. Так выглядит ошибка «данные изменились, а экран нет»: состояние не реактивное. Правильное исправление сделать его `ref`, а не вызывать `$forceUpdate` (в `<script setup>` для этого пришлось бы ещё и доставать экземпляр через `getCurrentInstance`, который не предназначен для кода приложений).
+
 ## Ручные подсказки
 
 - `v-once` рендерит элемент один раз и больше не обновляет.
@@ -96,5 +148,6 @@ after label change: { parentRenders: 3, childRenders: 2 }
 - Шаблоны компилируются при сборке; render-функция выполняется в реактивном эффекте компонента.
 - Компилятор кэширует статику и обработчики, ставит patch flags и собирает динамические узлы в блоки.
 - Компонент перерисовывается только из-за своих зависимостей или изменённых пропсов; дети не рендерятся вместе с родителем.
+- Нечитаемые при рендере и нереактивные данные рендер не вызывают; `$forceUpdate` маскирует нереактивное состояние.
 - Обновления группируются в один проход; `v-once`, `v-memo`, `shallowRef` для особых случаев.
 - Vapor Mode в 3.6 (RC) убирает Virtual DOM для выбранных компонентов.

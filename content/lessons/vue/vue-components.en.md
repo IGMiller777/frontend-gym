@@ -1,6 +1,6 @@
 ## What this lesson covers
 
-How Vue components are written today: a single-file component with `<script setup>`, props and events, `defineModel` for `v-model`, slots and scoped slots, `provide`/`inject`, element refs, directives and built-in components (`KeepAlive`, `Teleport`, async components). The `<script setup>` examples are shown as SFC code, and the runnable ones use the same API without the SFC compiler and run in jsdom on Vue 3.5.
+How Vue components are written today: a single-file component with `<script setup>`, props and events, `defineModel` for `v-model`, slots and scoped slots, `provide`/`inject`, prop validation and attribute fallthrough, generic components, element refs. The `<script setup>` examples are shown as SFC code, and the runnable ones use the same API without the SFC compiler and run in jsdom on Vue 3.5.
 
 ## A single-file component and script setup
 
@@ -24,6 +24,14 @@ function pick(i: number) {
     <button v-for="(on, i) in stars" :key="i" @click="pick(i)">{{ on ? '★' : '☆' }}</button>
   </span>
 </template>
+```
+
+```mermaid
+flowchart TD
+  A["Ancestor"] ~~~ P["Parent: state"]
+  P -->|"props (read-only),<br/>v-model: modelValue,<br/>slots with markup"| C["Child"]
+  C -->|"events: emit('change'),<br/>update:modelValue"| P
+  A -.->|"provide / inject<br/>through any levels"| C
 ```
 
 - Everything declared in `<script setup>` (variables, functions, imports) is available to the template; no `return` is needed.
@@ -111,6 +119,90 @@ console.log(el.querySelector('p').textContent.trim())
 
 The second list without a slot showed the default content. `$slots` (or `useSlots()`) lets you check whether a slot was passed.
 
+## Props in depth: validation and attribute fallthrough
+
+In TypeScript props are described by a type in `defineProps<...>()`. Without one (or for runtime checks) use the object declaration: type, required, default, validator. Violations produce warnings in development mode only:
+
+```js dom
+import { createApp } from 'vue'
+
+const Avatar = {
+  props: {
+    src: { type: String, required: true },
+    size: { type: String, default: 'md', validator: (value) => ['sm', 'md', 'lg'].includes(value) },
+    rounded: Boolean, // boolean casting: <Avatar rounded /> means true
+  },
+  template: `<img :src="src" :class="[size, { rounded }]">`,
+}
+
+const warn = console.warn
+console.warn = (message) => console.log('warning:', message.split('\n')[0])
+const el = document.createElement('div')
+createApp({ components: { Avatar }, template: `<Avatar size="xl" rounded />` }).mount(el)
+console.warn = warn
+console.log(el.innerHTML)
+```
+
+```output
+warning: [Vue warn]: Missing required prop: "src"
+warning: [Vue warn]: Invalid prop: custom validator check failed for prop "size".
+<img class="xl rounded">
+```
+
+- Defaults for objects and arrays use a factory: `default: () => []`, otherwise all instances would share one array.
+- A `Boolean` prop with no value (`<Avatar rounded />`) is `true`, a missing one is `false`.
+- Templates use `kebab-case` (`:active-id`), JavaScript uses `camelCase` (`activeId`); Vue maps them itself.
+
+**Attribute fallthrough.** Everything passed to a component that it did not declare in `props` or `emits` (`class`, `style`, `id`, `data-*`, `aria-*`, event listeners) lands in `$attrs` and is automatically applied to the **root** element:
+
+```js dom
+import { createApp } from 'vue'
+
+const BaseButton = {
+  props: ['variant'],
+  template: `<button class="btn" :class="variant"><slot /></button>`,
+}
+const TextField = {
+  inheritAttrs: false, // attrs go to the input, not to the root label
+  props: ['label'],
+  template: `<label>{{ label }} <input v-bind="$attrs"></label>`,
+}
+
+const el = document.createElement('div')
+createApp({
+  components: { BaseButton, TextField },
+  setup: () => ({ save: () => console.log('click listener fell through to <button>') }),
+  template: `
+    <BaseButton variant="primary" class="wide" data-test="save" @click="save">Save</BaseButton>
+    <TextField label="Email" type="email" placeholder="you@example.com" class="field" />`,
+}).mount(el)
+console.log(el.innerHTML.replace(/\n\s*/g, ''))
+el.querySelector('button').click()
+```
+
+```output
+<button class="btn primary wide" data-test="save">Save</button><label>Email <input type="email" placeholder="you@example.com" class="field"></label>
+click listener fell through to <button>
+```
+
+- `class` and `style` merge with the root's own classes (`btn primary wide`); everything else overrides.
+- `inheritAttrs: false` (in `<script setup>` through `defineOptions({ inheritAttrs: false })`) turns automatic fallthrough off, and `v-bind="$attrs"` applies the attributes where needed, for example to an `<input>` inside a wrapper.
+- A multi-root component has no automatic fallthrough: Vue warns until `$attrs` is bound explicitly. In `<script setup>` attributes are available through `useAttrs()`; they are not reactive for `watch`, but always current during render.
+
+## Generic components and typing
+
+```vue
+<script setup lang="ts" generic="T extends { id: string | number }">
+const props = defineProps<{ items: T[]; selected?: T }>()
+const emit = defineEmits<{ select: [item: T] }>()
+defineSlots<{ default(props: { item: T; active: boolean }): any }>()
+</script>
+```
+
+- `generic="T"` makes the component generic: with `<DataList :items="users">` TypeScript infers `T` as the user type, and `item` is typed in the slot and the event.
+- `defineSlots` types slots, `defineExpose` exposes methods to a parent `ref`, `InjectionKey<T>` types `provide`/`inject`.
+- Template type checking is done by `vue-tsc` (in CI: `vue-tsc --noEmit`), editor support by the Vue extension (Volar).
+
 ## provide and inject
 
 `provide(key, value)` in a component makes a value available to all descendants at any depth, and `inject(key, default)` reads it. The key is best a `Symbol` typed as `InjectionKey<T>`. If you provide a ref, descendants get a reactive value; to keep them from changing it directly, provide `readonly(ref)` plus an update function.
@@ -149,21 +241,11 @@ console.log(el.innerHTML)
 
 `app.provide(...)` gives a value to the whole app: this is how the router, Pinia and i18n are installed. For state shared by many components, Pinia is the usual choice (see the composables lesson).
 
-## Element refs, directives
+## Element refs and ids
 
 - `useTemplateRef('input')` (3.5) returns a ref to the element or component with `ref="input"`; the value appears after mounting. A `<script setup>` component is closed: only what is passed to `defineExpose` is visible from outside.
 - `useId()` (3.5) generates ids that match on the server and the client, for `label for` and `aria-*`.
-- `v-if` creates and destroys the element (with its state and watchers), `v-show` only toggles `display`: the first is cheaper at start, the second for frequent toggling.
-- `v-for` needs a stable `:key` from the data, as in React; an index breaks state on insertion. Do not combine `v-if` and `v-for` on one element: `v-if` has higher priority, and the loop variable is not visible in it.
-- Event modifiers: `@submit.prevent`, `@keydown.enter`, `@click.stop`, `@click.once`; `v-model` has `.trim`, `.number`, `.lazy`.
-
-## Built-in components
-
-- `<KeepAlive>` caches instances of switched components (tabs, wizard steps): state is kept, and `onActivated`/`onDeactivated` are called.
-- `<Teleport to="body">` renders its content elsewhere in the DOM (modals) while keeping it in the component tree. Since 3.5 `defer` allows teleporting into an element Vue renders later.
-- `<Transition>` and `<TransitionGroup>` add classes for enter and leave animations.
-- `defineAsyncComponent(() => import('./Chart.vue'))` loads a component as a separate chunk; since 3.5 it supports lazy hydration (`hydrate: hydrateOnVisible()`).
-- `<Suspense>` waits for async `setup` and shows fallback content; it is still experimental.
+- Directives, lists, events and `v-model` on form fields are covered in the templates lesson, and `KeepAlive`, `Teleport`, `Transition`, async components and `Suspense` in the built-in components lesson.
 
 ## Key points
 
@@ -171,5 +253,6 @@ console.log(el.innerHTML)
 - Props down, events up; `defineModel` gives `v-model` in one line.
 - Scoped slots hand the child's data to the parent's markup.
 - `provide`/`inject` for subtree data, ideally with a `Symbol` key and `readonly`.
-- `useTemplateRef` and `useId` from 3.5, keys in `v-for`, `v-if` versus `v-show`.
-- `KeepAlive`, `Teleport`, `Transition`, async components; `Suspense` is experimental.
+- Props are checked in development (type, `required`, `validator`); undeclared attributes and listeners fall through to the root, `inheritAttrs: false` and `v-bind="$attrs"` change that.
+- `generic` in `<script setup>`, `defineSlots`, `vue-tsc` for template types.
+- `useTemplateRef` and `useId` from 3.5.

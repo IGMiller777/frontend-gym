@@ -1,6 +1,6 @@
 ## What this lesson covers
 
-Reactivity is the core of Vue: the template, `computed` and watchers re-run because Vue knows which data they read. This lesson covers how `ref` and `reactive` work, why `reactive` returns a proxy, where reactivity is lost and how to get it back, `computed` and its cache, `shallowRef` and `readonly`. The examples run on Vue 3.5 in Node.js.
+Reactivity is the core of Vue: the template, `computed` and watchers re-run because Vue knows which data they read. This lesson covers the track and trigger mechanism, how `ref` and `reactive` work, why `reactive` returns a proxy, where reactivity is lost and how to get it back, `computed` and its cache, `shallowRef` and `readonly`. The examples run on Vue 3.5 in Node.js.
 
 ## ref and reactive
 
@@ -39,6 +39,84 @@ reactive(0) returns 0
 - Vue does not see changes made through the **original object**: work with the proxy.
 - `reactive` does not accept primitives: in development you get a warning and the original value, not an error. For primitives use `ref`.
 - The docs recommend `ref` by default: `reactive` has more traps (below).
+
+## How Vue learns about dependencies
+
+Everything that re-runs when data changes (a component render, `computed`, `watch`, `watchEffect`) Vue calls an **effect**. The mechanism is two operations:
+
+```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 300
+---
+flowchart TD
+  E["An effect runs<br/>(render, computed, watchEffect)<br/>and becomes activeEffect"] --> R["It reads state.name"]
+  R --> T["get trap → track:<br/>record activeEffect<br/>in the deps of state.name"]
+  W["Code writes state.name = 'Bob'"] --> S["set trap → trigger:<br/>find the effects that read state.name"]
+  S --> Q["The scheduler queues them<br/>and re-runs them in one pass"]
+  Q --> E
+```
+
+A simplified model you can explain in an interview:
+
+```js run
+// A tiny model of Vue reactivity: effects, track on read, trigger on write
+let activeEffect = null
+const deps = new WeakMap() // target → key → Set of effects
+
+function track(target, key) {
+  if (!activeEffect) return
+  if (!deps.has(target)) deps.set(target, new Map())
+  const byKey = deps.get(target)
+  if (!byKey.has(key)) byKey.set(key, new Set())
+  byKey.get(key).add(activeEffect)
+}
+function trigger(target, key) {
+  deps.get(target)?.get(key)?.forEach((effect) => effect())
+}
+function reactive(obj) {
+  return new Proxy(obj, {
+    get(target, key, receiver) {
+      track(target, key)
+      return Reflect.get(target, key, receiver)
+    },
+    set(target, key, value, receiver) {
+      const ok = Reflect.set(target, key, value, receiver)
+      trigger(target, key)
+      return ok
+    },
+  })
+}
+function effect(fn) {
+  const run = () => {
+    activeEffect = run
+    try {
+      fn()
+    } finally {
+      activeEffect = null
+    }
+  }
+  run()
+}
+
+const state = reactive({ name: 'Ann', age: 30, unused: 0 })
+effect(() => console.log(`render: ${state.name}, ${state.age}`))
+state.age = 31 // tracked: the effect reran
+state.unused = 1 // never read by the effect: nothing happens
+state.name = 'Bob'
+```
+
+```output
+render: Ann, 30
+render: Ann, 31
+render: Bob, 31
+```
+
+- **track** on read records the current effect in the deps of the "object + key" pair, **trigger** on write re-runs the recorded effects. That is why changing `unused` did nothing: nobody read it.
+- Deps are collected again on every run, so they are **dynamic**: an `if` branch that did not run tracks nothing.
+- `ref` works the same way but without a `Proxy`: it is an object with a `value` getter and setter that call track and trigger. That is why `ref` works with primitives and `reactive` does not (a proxy can only wrap an object).
+- In real Vue effects are not re-run synchronously but through the scheduler (see the watchers lesson), and instead of a `Set`, 3.5 uses doubly linked lists and version counters (hence −56% memory). In 3.6 reactivity is being rewritten on top of alien-signals; the track/trigger model stays the same.
 
 ## Where reactivity is lost
 
@@ -129,6 +207,7 @@ Bob | Bob Ray
 
 ## Key points
 
+- An effect (render, `computed`, watcher) subscribes to data on read (track), and a write re-runs the subscribers (trigger).
 - `ref` for any value (`.value` in code, none in templates), `reactive` for objects, returning a proxy.
 - Changes through the original object are not tracked; `reactive(0)` gives a warning and 0.
 - Destructuring and passing a property into a function lose reactivity; `toRefs`, `toRef` and getters help; `defineProps` destructures reactively since 3.5.

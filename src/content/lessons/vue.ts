@@ -1,10 +1,11 @@
 import type { Source } from '../sources'
 import type { Lesson, Module } from './types'
+import { vueMoreLessons } from './vue-more'
 
 const docs = (title: string, path: string): Source => ({ title: `vuejs.org: ${title}`, url: `https://vuejs.org/${path}`, kind: 'official' })
 const verified = { date: '2026-11', version: 'Vue 3.5, Pinia 4.1, Vue Router 5.4' }
 
-export const vueLessons: Lesson[] = [
+const baseLessons: Lesson[] = [
   {
     id: 'vue-reactivity',
     track: 'vue',
@@ -12,8 +13,8 @@ export const vueLessons: Lesson[] = [
     minutes: 12,
     title: { ru: 'Реактивность: ref, reactive, computed', en: 'Reactivity: ref, reactive, computed' },
     summary: {
-      ru: 'Прокси reactive и .value у ref, где теряется реактивность и toRefs, разворачивание, ленивый computed, shallowRef и readonly.',
-      en: 'The reactive proxy and ref .value, where reactivity is lost and toRefs, unwrapping, lazy computed, shallowRef and readonly.',
+      ru: 'Как работают track и trigger, прокси reactive и .value у ref, где теряется реактивность и toRefs, разворачивание, ленивый computed, shallowRef и readonly.',
+      en: 'How track and trigger work, the reactive proxy and ref .value, where reactivity is lost and toRefs, unwrapping, lazy computed, shallowRef and readonly.',
     },
     quiz: {
       ru: [
@@ -44,8 +45,8 @@ export const vueLessons: Lesson[] = [
     minutes: 12,
     title: { ru: 'Наблюдатели и nextTick', en: 'Watchers and nextTick' },
     summary: {
-      ru: 'watch против watchEffect, flush pre, post и sync, группировка и nextTick, глубина и геттеры, once, onWatcherCleanup и гонки.',
-      en: 'watch versus watchEffect, flush pre, post and sync, batching and nextTick, depth and getters, once, onWatcherCleanup and races.',
+      ru: 'watch против watchEffect, watchPostEffect и watchSyncEffect, таблица всех эффектов, flush pre, post и sync, группировка и nextTick, глубина и геттеры, once, onWatcherCleanup и гонки.',
+      en: 'watch versus watchEffect, watchPostEffect and watchSyncEffect, a table of all effects, flush pre, post and sync, batching and nextTick, depth and getters, once, onWatcherCleanup and races.',
     },
     quiz: {
       ru: [
@@ -75,8 +76,8 @@ export const vueLessons: Lesson[] = [
     minutes: 14,
     title: { ru: 'Компоненты: script setup, v-model, слоты', en: 'Components: script setup, v-model, slots' },
     summary: {
-      ru: 'SFC и script setup, реактивные пропсы 3.5, defineModel, scoped-слоты, provide и inject, useTemplateRef, директивы, KeepAlive и Teleport.',
-      en: 'SFC and script setup, reactive props in 3.5, defineModel, scoped slots, provide and inject, useTemplateRef, directives, KeepAlive and Teleport.',
+      ru: 'SFC и script setup, реактивные пропсы 3.5, defineModel, scoped-слоты, валидация пропсов и $attrs, generic-компоненты, provide и inject, useTemplateRef.',
+      en: 'SFC and script setup, reactive props in 3.5, defineModel, scoped slots, prop validation and $attrs, generic components, provide and inject, useTemplateRef.',
     },
     quiz: {
       ru: [
@@ -141,8 +142,8 @@ export const vueLessons: Lesson[] = [
     minutes: 11,
     title: { ru: 'Рендер: компилятор и Vapor Mode', en: 'Rendering: the compiler and Vapor Mode' },
     summary: {
-      ru: 'Вывод компилятора 3.5: кэш статики, patch flags, блоки; какие компоненты рендерятся и отличие от React, v-memo, Vapor Mode в 3.6.',
-      en: 'The 3.5 compiler output: cached statics, patch flags, blocks; which components render and how it differs from React, v-memo, Vapor Mode in 3.6.',
+      ru: 'Путь от шаблона до DOM, вывод компилятора 3.5: кэш статики, patch flags, блоки; что вызывает и не вызывает ререндер, отличие от React, v-memo, Vapor Mode в 3.6.',
+      en: 'From template to DOM, the 3.5 compiler output: cached statics, patch flags, blocks; what does and does not cause a re-render, how it differs from React, v-memo, Vapor Mode in 3.6.',
     },
     quiz: {
       ru: [
@@ -170,28 +171,26 @@ export const vueLessons: Lesson[] = [
     track: 'vue',
     emoji: '🗺️',
     minutes: 12,
-    title: { ru: 'Роутер, SSR, Nuxt и тесты', en: 'Router, SSR, Nuxt and tests' },
+    title: { ru: 'SSR, Nuxt и тесты', en: 'SSR, Nuxt and tests' },
     summary: {
-      ru: 'Vue Router 5 и guards, props из параметров, SSR и гидратация, useId и data-allow-mismatch, ленивая гидратация, Nuxt 4, Vitest и Vue Test Utils.',
-      en: 'Vue Router 5 and guards, props from params, SSR and hydration, useId and data-allow-mismatch, lazy hydration, Nuxt 4, Vitest and Vue Test Utils.',
+      ru: 'SSR и гидратация по шагам, useId и data-allow-mismatch, ленивая гидратация, состояние при SSR, режимы рендера Nuxt 4, Vitest, Vue Test Utils и Testing Library.',
+      en: 'SSR and hydration step by step, useId and data-allow-mismatch, lazy hydration, state under SSR, Nuxt 4 rendering modes, Vitest, Vue Test Utils and Testing Library.',
     },
     quiz: {
       ru: [
-        { q: 'Как глобальный guard Vue Router 5 перенаправляет на страницу входа?', options: ['Вызывает `next(\'/login\')` обязательно', 'Возвращает маршрут `{ path: \'/login\' }`', 'Бросает исключение `Redirect`', 'Меняет `window.location` вручную'], correct: 1, why: 'Guard возвращает маршрут для редиректа, `false` для отмены или ничего; `next` больше не нужен.' },
-        { q: 'Что нового в Vue Router 5?', options: ['Отказ от Composition API', 'Файловый роутинг в ядре', 'Удаление navigation guards', 'Новый синтаксис маршрутов'], correct: 1, why: 'Vue Router 5 включил `unplugin-vue-router` в ядро; для обычной конфигурации ломающих изменений нет.' },
+        { q: 'Что делает гидратация?', options: ['Заново строит DOM на клиенте', 'Оживляет готовый HTML сервера', 'Загружает данные для страницы', 'Сжимает HTML перед отправкой'], correct: 1, why: 'Vue проходит по серверной разметке, навешивает обработчики и сверяет её с первым клиентским рендером.' },
+        { q: 'Как в Nuxt 4 отдать `/admin/**` только клиенту?', options: ['`prerender: true` в `routeRules`', 'Отдельный проект на Vite', '`ssr: false` в `routeRules`', '`<ClientOnly>` на каждой странице'], correct: 2, why: '`routeRules` задаёт режим рендера по маршруту: `ssr: false` превращает раздел в SPA.' },
         { q: 'Зачем `useId()` в приложении с SSR?', options: ['Чтобы ускорить рендер списков', 'Одинаковые id на сервере и клиенте', 'Для ключей элементов в `v-for`', 'Чтобы шифровать атрибуты в HTML'], correct: 1, why: '`useId` (3.5) даёт стабильные id для `label` и `aria-*` без несовпадений при гидратации.' },
         { q: 'Что делает `hydrateOnVisible()` у асинхронного компонента?', options: ['Загружает его при наведении', 'Гидратирует, когда он виден', 'Рендерит его только на клиенте', 'Отключает SSR для страницы'], correct: 1, why: 'Ленивая гидратация (3.5) оставляет компонент статичным HTML, пока он не появится на экране.' },
       ],
       en: [
-        { q: 'How does a global Vue Router 5 guard redirect to the login page?', options: ['It must call `next(\'/login\')`', 'It returns a route `{ path: \'/login\' }`', 'It throws a `Redirect` exception', 'It changes `window.location` by hand'], correct: 1, why: 'A guard returns a route to redirect to, `false` to cancel, or nothing; `next` is no longer needed.' },
-        { q: 'What is new in Vue Router 5?', options: ['Dropping the Composition API', 'File-based routing in the core', 'Removing navigation guards', 'A new route syntax'], correct: 1, why: 'Vue Router 5 moved `unplugin-vue-router` into the core; ordinary configuration has no breaking changes.' },
+        { q: 'What does hydration do?', options: ['Rebuilds the DOM on the client', 'Brings server HTML to life', 'Loads the data for the page', 'Compresses HTML before sending'], correct: 1, why: 'Vue walks the server markup, attaches listeners and checks it against the first client render.' },
+        { q: 'How do you serve `/admin/**` client-only in Nuxt 4?', options: ['`prerender: true` in `routeRules`', 'A separate Vite project', '`ssr: false` in `routeRules`', '`<ClientOnly>` on every page'], correct: 2, why: '`routeRules` sets the rendering mode per route: `ssr: false` turns the section into an SPA.' },
         { q: 'Why use `useId()` in an SSR app?', options: ['To speed up list rendering', 'Same ids on server and client', 'For item keys in `v-for` loops', 'To encrypt attributes in the HTML'], correct: 1, why: '`useId` (3.5) gives stable ids for `label` and `aria-*` with no hydration mismatches.' },
         { q: 'What does `hydrateOnVisible()` do for an async component?', options: ['Loads its code on hover', 'Hydrates it once visible', 'Renders it only on the client', 'Turns off SSR for the page'], correct: 1, why: 'Lazy hydration (3.5) keeps the component as static HTML until it appears on screen.' },
       ],
     },
     sources: [
-      { title: 'router.vuejs.org: Navigation guards', url: 'https://router.vuejs.org/guide/advanced/navigation-guards.html', kind: 'official' },
-      { title: 'router.vuejs.org: Migrating to Vue Router 5', url: 'https://router.vuejs.org/guide/migration/v4-to-v5.html', kind: 'official' },
       docs('Server-side rendering', 'guide/scaling-up/ssr.html'),
       docs('Async components: lazy hydration', 'guide/components/async.html'),
       { title: 'nuxt.com: Rendering modes', url: 'https://nuxt.com/docs/guide/concepts/rendering', kind: 'official' },
@@ -201,6 +200,25 @@ export const vueLessons: Lesson[] = [
   },
 ]
 
+/** Path order: templates, reactivity and effects, components, logic reuse, internals, the app, quality. */
+const order = [
+  'vue-template-syntax',
+  'vue-reactivity',
+  'vue-watchers',
+  'vue-lifecycle',
+  'vue-components',
+  'vue-built-ins',
+  'vue-composables',
+  'vue-rendering',
+  'vue-options-vs-composition',
+  'vue-router',
+  'vue-app',
+  'vue-best-practices',
+]
+const all = new Map([...baseLessons, ...vueMoreLessons].map((l) => [l.id, l]))
+export const vueLessons: Lesson[] = order.map((id) => all.get(id)!)
+if (vueLessons.length !== all.size || vueLessons.some((l) => !l)) throw new Error('vue: lesson order is out of sync with lesson list')
+
 export const vueModule: Module = {
   track: 'vue',
   lessons: vueLessons.map((l) => l.id),
@@ -208,24 +226,36 @@ export const vueModule: Module = {
     pass: 0.75,
     questions: {
       ru: [
-        { q: 'Почему документация рекомендует `ref` по умолчанию?', options: ['`ref` заметно быстрее `reactive`', 'Меньше ловушек при деструктуризации', '`reactive` объявлен устаревшим в 3.5', '`ref` не требует писать `.value`'], correct: 1, why: '`ref` работает с любыми значениями и переживает замену `.value`; у `reactive` больше способов потерять реактивность.' },
-        { q: '`watchEffect` создан, затем `a.value = 1; a.value = 2`. Сколько раз выполнится функция к концу `nextTick`?', options: ['Три раза, по разу на запись', 'Дважды: при создании и после', 'Один раз, только после изменений', 'Один раз, только при создании'], correct: 1, why: '`watchEffect` выполняется сразу при создании, а изменения группируются в один повторный запуск.' },
-        { q: 'Наблюдатель должен читать DOM уже после обновления. Что указать?', options: ['`deep: true`', '`flush: \'post\'`', '`immediate: true`', '`once: true`'], correct: 1, why: '`flush: \'post\'` (`watchPostEffect`) выполняется после патча DOM.' },
-        { q: 'Родитель держит значение через `v-model`. Ребёнок записал `model.value = 4` и сразу читает `model.value`. Что он получит?', options: ['4', 'Прежнее значение', '`undefined`', 'Ошибку записи'], correct: 1, why: 'Запись отправляет `update:modelValue`, а новое значение придёт пропом при следующем обновлении.' },
-        { q: 'Как передать данные потомку на пятом уровне без пропсов на каждом уровне?', options: ['Через глобальную переменную модуля', '`provide` в предке, `inject` ниже', 'Через `$parent` пять раз', 'Через scoped-слот на каждом уровне'], correct: 1, why: '`provide`/`inject` передаёт значение всему поддереву.' },
-        { q: 'Что делает `scope.stop()` у `effectScope`?', options: ['Приостанавливает рендер этого компонента', 'Гасит её эффекты и `onScopeDispose`', 'Удаляет компонент вместе с DOM', 'Очищает всё состояние стора Pinia'], correct: 1, why: 'Область останавливает свои `computed` и наблюдатели и вызывает колбэки `onScopeDispose`; так компонент очищается при размонтировании.' },
-        { q: 'Новый объект `:options="{ a: 1 }"` в шаблоне родителя. Что с ребёнком при каждом рендере родителя?', options: ['Ничего, Vue сравнивает глубоко', 'Обновится: проп это новый объект', 'Ошибка в режиме разработки', 'Обновится только с `v-memo`'], correct: 1, why: 'Пропсы сравниваются поверхностно; объект, созданный в шаблоне, каждый раз новый.' },
+        { q: 'Почему документация рекомендует `ref` по умолчанию?', options: ['`ref` заметно быстрее `reactive`', '`reactive` объявлен устаревшим в 3.5', 'Меньше ловушек при деструктуризации', '`ref` не требует писать `.value`'], correct: 2, why: '`ref` работает с любыми значениями и переживает замену `.value`; у `reactive` больше способов потерять реактивность.' },
+        { q: '`watchEffect` создан, затем `a.value = 1; a.value = 2`. Сколько раз выполнится функция к концу `nextTick`?', options: ['Дважды: при создании и после', 'Три раза, по разу на запись', 'Один раз, только после изменений', 'Один раз, только при создании'], correct: 0, why: '`watchEffect` выполняется сразу при создании, а изменения группируются в один повторный запуск.' },
+        { q: 'Наблюдатель должен читать DOM уже после обновления. Что указать?', options: ['`deep: true`', '`immediate: true`', '`once: true`', '`flush: \'post\'`'], correct: 3, why: '`flush: \'post\'` (`watchPostEffect`) выполняется после патча DOM.' },
+        { q: 'Родитель держит значение через `v-model`. Ребёнок записал `model.value = 4` и сразу читает `model.value`. Что он получит?', options: ['Новое значение 4', 'Прежнее значение', 'Значение `undefined`', 'Ошибку записи'], correct: 1, why: 'Запись отправляет `update:modelValue`, а новое значение придёт пропом при следующем обновлении.' },
+        { q: 'Как передать данные потомку на пятом уровне без пропсов на каждом уровне?', options: ['Через глобальную переменную модуля', 'Через `$parent` пять раз', '`provide` в предке, `inject` ниже', 'Через scoped-слот на каждом уровне'], correct: 2, why: '`provide`/`inject` передаёт значение всему поддереву.' },
+        { q: 'Что делает `scope.stop()` у `effectScope`?', options: ['Гасит её эффекты и `onScopeDispose`', 'Приостанавливает рендер этого компонента', 'Удаляет компонент вместе с DOM', 'Очищает всё состояние стора Pinia'], correct: 0, why: 'Область останавливает свои `computed` и наблюдатели и вызывает колбэки `onScopeDispose`; так компонент очищается при размонтировании.' },
+        { q: 'Новый объект `:options="{ a: 1 }"` в шаблоне родителя. Что с ребёнком при каждом рендере родителя?', options: ['Ничего, Vue сравнивает глубоко', 'Ошибка в режиме разработки', 'Обновится только с `v-memo`', 'Обновится: проп это новый объект'], correct: 3, why: 'Пропсы сравниваются поверхностно; объект, созданный в шаблоне, каждый раз новый.' },
         { q: 'Какая история Vue Router подходит для SSR и тестов?', options: ['`createWebHistory()`', '`createMemoryHistory()`', '`createWebHashHistory()`', 'Любая из трёх'], correct: 1, why: 'На сервере и в тестах нет адресной строки браузера; `createMemoryHistory` хранит историю в памяти.' },
+        { q: 'Эффект прочитал `state.a`. Что произойдёт при записи в `state.b`, который он не читал?', options: ['Эффект перезапустится', 'Ничего не произойдёт', 'Vue выдаст предупреждение', 'Перезапустятся все эффекты'], correct: 1, why: 'trigger перезапускает только эффекты, которые прочитали этот ключ (track при чтении).' },
+        { q: 'В каком порядке вызываются `onMounted` родителя и ребёнка?', options: ['Сначала родитель', 'Одновременно в микрозадаче', 'Сначала ребёнок', 'Зависит от ключей'], correct: 2, why: '«After»-хуки идут снизу вверх: родитель смонтирован, когда смонтированы все его дети.' },
+        { q: 'Почему `v-if` и `v-for` не ставят на один элемент в Vue 3?', options: ['`v-if` не видит переменную цикла', 'Это запрещено и не компилируется', 'Список отрендерится два раза подряд', '`v-for` молча игнорирует условие'], correct: 0, why: 'В Vue 3 у `v-if` приоритет выше; фильтр делают через `computed` или `<template v-for>`.' },
+        { q: 'Компонент страницы `/users/:id` загружает данные в `setup`. Что не так при переходе на `/users/2`?', options: ['Страница перезагрузится целиком с нуля', 'Сработает только `beforeEnter` маршрута', 'Роутер бросит ошибку навигации', 'Экземпляр переиспользуется, данные старые'], correct: 3, why: 'Смена параметра переиспользует компонент; нужно следить за `route.params.id` или задать `key` у `RouterView`.' },
+        { q: 'Чем `<KeepAlive>` отличается от `v-show` для вкладок с компонентами?', options: ['Ничем, это два имени одного механизма', 'Скрытые вкладки не в DOM, но экземпляры живы', '`KeepAlive` быстрее при первом рендере', '`v-show` не работает с компонентами'], correct: 1, why: '`v-show` держит DOM скрытым, а `KeepAlive` убирает DOM и кэширует экземпляр с хуками `onActivated`/`onDeactivated`.' },
+        { q: 'Что из этого опасно с данными пользователя?', options: ['`{{ comment }}`', '`:title="comment"`', '`v-html="comment"`', '`v-text="comment"`'], correct: 2, why: '`v-html` вставляет строку как HTML без экранирования; остальные варианты экранируются.' },
       ],
       en: [
-        { q: 'Why do the docs recommend `ref` by default?', options: ['`ref` is much faster than `reactive`', 'Fewer traps when destructuring', '`reactive` was deprecated in 3.5', '`ref` does not need `.value`'], correct: 1, why: '`ref` works with any value and survives replacing `.value`; `reactive` has more ways to lose reactivity.' },
-        { q: 'A `watchEffect` is created, then `a.value = 1; a.value = 2`. How many times has the function run by the end of `nextTick`?', options: ['Three times, once per write', 'Twice: on creation and after', 'Once, only after the changes', 'Once, only on creation'], correct: 1, why: '`watchEffect` runs at once on creation, and the changes are batched into one more run.' },
-        { q: 'A watcher must read the DOM after the update. What do you set?', options: ['`deep: true`', '`flush: \'post\'`', '`immediate: true`', '`once: true`'], correct: 1, why: '`flush: \'post\'` (`watchPostEffect`) runs after the DOM patch.' },
-        { q: 'The parent holds a value through `v-model`. The child writes `model.value = 4` and reads `model.value` right away. What does it get?', options: ['4, the new value', 'The previous value', '`undefined` for now', 'A write error'], correct: 1, why: 'Writing emits `update:modelValue`, and the new value arrives as a prop on the next update.' },
-        { q: 'How do you pass data to a descendant five levels down without props on every level?', options: ['Through a global module variable', '`provide` above, `inject` below', 'Through `$parent` five times', 'Through a scoped slot on each level'], correct: 1, why: '`provide`/`inject` passes a value to the whole subtree.' },
-        { q: 'What does `scope.stop()` on an `effectScope` do?', options: ['Pauses rendering of the component', 'Stops its effects, runs disposers', 'Removes the component from the DOM', 'Clears all state of the Pinia store'], correct: 1, why: 'A scope stops its `computed`s and watchers and runs its `onScopeDispose` callbacks; this is how a component cleans up on unmount.' },
-        { q: 'A new object `:options="{ a: 1 }"` in the parent template. What happens to the child on each parent render?', options: ['Nothing, Vue compares props deeply', 'It updates: the prop is a new object', 'An error in development mode', 'It updates only with `v-memo`'], correct: 1, why: 'Props are compared shallowly; an object created in the template is new every time.' },
+        { q: 'Why do the docs recommend `ref` by default?', options: ['`ref` is much faster than `reactive`', '`reactive` was deprecated in 3.5', 'Fewer traps when destructuring', '`ref` does not need `.value`'], correct: 2, why: '`ref` works with any value and survives replacing `.value`; `reactive` has more ways to lose reactivity.' },
+        { q: 'A `watchEffect` is created, then `a.value = 1; a.value = 2`. How many times has the function run by the end of `nextTick`?', options: ['Twice: on creation and after', 'Three times, once per write', 'Once, only after the changes', 'Once, only on creation'], correct: 0, why: '`watchEffect` runs at once on creation, and the changes are batched into one more run.' },
+        { q: 'A watcher must read the DOM after the update. What do you set?', options: ['`deep: true`', '`immediate: true`', '`once: true`', '`flush: \'post\'`'], correct: 3, why: '`flush: \'post\'` (`watchPostEffect`) runs after the DOM patch.' },
+        { q: 'The parent holds a value through `v-model`. The child writes `model.value = 4` and reads `model.value` right away. What does it get?', options: ['The new value 4', 'The previous value', 'The value `undefined`', 'A write error'], correct: 1, why: 'Writing emits `update:modelValue`, and the new value arrives as a prop on the next update.' },
+        { q: 'How do you pass data to a descendant five levels down without props on every level?', options: ['Through a global module variable', 'Through `$parent` five times', '`provide` above, `inject` below', 'Through a scoped slot on each level'], correct: 2, why: '`provide`/`inject` passes a value to the whole subtree.' },
+        { q: 'What does `scope.stop()` on an `effectScope` do?', options: ['Stops its effects, runs disposers', 'Pauses rendering of the component', 'Removes the component from the DOM', 'Clears all state of the Pinia store'], correct: 0, why: 'A scope stops its `computed`s and watchers and runs its `onScopeDispose` callbacks; this is how a component cleans up on unmount.' },
+        { q: 'A new object `:options="{ a: 1 }"` in the parent template. What happens to the child on each parent render?', options: ['Nothing, Vue compares props deeply', 'An error in development mode', 'It updates only with `v-memo`', 'It updates: the prop is a new object'], correct: 3, why: 'Props are compared shallowly; an object created in the template is new every time.' },
         { q: 'Which Vue Router history suits SSR and tests?', options: ['`createWebHistory()`', '`createMemoryHistory()`', '`createWebHashHistory()`', 'Any of the three'], correct: 1, why: 'Servers and tests have no browser address bar; `createMemoryHistory` keeps the history in memory.' },
+        { q: 'An effect read `state.a`. What happens on a write to `state.b`, which it did not read?', options: ['The effect reruns', 'Nothing happens', 'Vue prints a warning', 'All effects rerun'], correct: 1, why: 'trigger reruns only the effects that read that key (track on read).' },
+        { q: 'In which order do the parent and child `onMounted` run?', options: ['The parent first', 'Together in a microtask', 'The child first', 'It depends on keys'], correct: 2, why: '"After" hooks go bottom-up: the parent is mounted once all its children are.' },
+        { q: 'Why not put `v-if` and `v-for` on one element in Vue 3?', options: ['`v-if` cannot see the loop variable', 'It is forbidden and does not compile', 'The list is rendered two times', '`v-for` silently ignores the condition'], correct: 0, why: 'In Vue 3 `v-if` has higher priority; filter with a `computed` or `<template v-for>`.' },
+        { q: 'A `/users/:id` page component loads data in `setup`. What goes wrong when navigating to `/users/2`?', options: ['The whole page reloads from scratch', 'Only the route `beforeEnter` runs', 'The router throws a navigation failure', 'The instance is reused, data stays stale'], correct: 3, why: 'A param change reuses the component; watch `route.params.id` or set a `key` on `RouterView`.' },
+        { q: 'How does `<KeepAlive>` differ from `v-show` for tabs with components?', options: ['No difference, they are the same', 'Hidden tabs leave the DOM, instances live on', '`KeepAlive` is faster on first render', '`v-show` does not work with components'], correct: 1, why: '`v-show` keeps the DOM hidden, while `KeepAlive` removes the DOM and caches the instance with `onActivated`/`onDeactivated`.' },
+        { q: 'Which of these is dangerous with user data?', options: ['`{{ comment }}`', '`:title="comment"`', '`v-html="comment"`', '`v-text="comment"`'], correct: 2, why: '`v-html` inserts the string as HTML without escaping; the others are escaped.' },
       ],
     },
   },
