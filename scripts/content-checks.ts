@@ -84,7 +84,7 @@ export function staticProblems(): string[] {
       })
       for (const [l, list] of [['ru', ru], ['en', en]] as const)
         list.forEach((s) => {
-          if (s.mode === 'run' && s.expected === null) out.push(`${w}.${l}:${s.line}: runnable example without an output block`)
+          if (s.mode !== 'check' && s.expected === null) out.push(`${w}.${l}:${s.line}: runnable example without an output block`)
           if (s.mode === 'check' && s.expected !== null) out.push(`${w}.${l}:${s.line}: a "check" example does not run, drop its output block`)
         })
     }
@@ -204,10 +204,10 @@ export function snippetProblems(): string[] {
     for (const s of extractSnippets(readBody(lesson.track, lesson.id, 'ru'))) {
       const where = `${lesson.id}.ru:${s.line}`
       if (s.lang === 'ts') tsFiles[`${where}.ts`] = s.code
-      if (s.mode !== 'run') continue
+      if (s.mode === 'check') continue
       let got: string
       try {
-        got = runSnippet(s.code, s.lang)
+        got = runSnippet(s.code, s.lang, s.mode)
       } catch (e) {
         out.push(`${where}: example threw: ${(e as Error).message.split('\n')[0]}`)
         continue

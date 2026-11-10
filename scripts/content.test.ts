@@ -79,4 +79,11 @@ describe('checkers catch mistakes', () => {
     expect([check.lang, check.mode, run.mode, run.expected]).toEqual(['ts', 'check', 'run', 'ok'])
     expect(runSnippet(run.code, 'ts')).toBe('ok')
   })
+
+  it('runs js dom blocks inside a jsdom page', () => {
+    const md = '```js dom\ndocument.body.innerHTML = "<p>a</p><p>b</p>"\nconsole.log(document.querySelectorAll("p").length)\n```\n\n```output\n2\n```\n'
+    const [dom] = extractSnippets(md)
+    expect([dom.mode, dom.expected]).toEqual(['dom', '2'])
+    expect(runSnippet(dom.code, dom.lang, dom.mode)).toBe('2')
+  })
 })
