@@ -108,6 +108,9 @@ export const en: Dict = {
     reviewHint: 'The mentor looks at your code like an interviewer: correctness, complexity, readability and the follow-up questions.',
     reviewing: 'Reading your code…',
     stop: 'Stop',
+    preview: 'Show the component',
+    previewRefresh: 'Refresh',
+    previewHint: (name: string) => `Preview: your ${name} component in its own sandbox, so you can try it by hand.`,
   },
   predict: {
     title: 'What does this code print?',
