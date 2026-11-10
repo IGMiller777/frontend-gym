@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* Dark mode follows the `.dark` class on <html> (set from the theme setting, see useApplyTheme). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. Bright and playful: violet → pink → orange brand gradient,
+ * each track brings its own gradient (src/content/tracks.ts).
+ * Text tokens keep WCAG 2.2 AA contrast (≥ 4.5:1) on both canvases.
+ */
+:root {
+  --canvas: #f6f4ff;
+  --surface: #ffffff;
+  --surface-2: #efecfd;
+  --ink: #17153a;
+  --muted: #59567d;
+  --line: #e2def5;
+  --brand-1: #7c3aed;
+  --brand-2: #db2777;
+  --brand-3: #ea580c;
+  --ring: #7c3aed;
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #0d0a22;
+  --surface: #17133a;
+  --surface-2: #221c50;
+  --ink: #f4f2ff;
+  --muted: #aca7d8;
+  --line: #2e2866;
+  --brand-1: #a78bfa;
+  --brand-2: #f472b6;
+  --brand-3: #fb923c;
+  --ring: #c4b5fd;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Onest', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Unbounded', 'Onest', ui-sans-serif, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand-1: var(--brand-1);
+  --color-brand-2: var(--brand-2);
+  --color-brand-3: var(--brand-3);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility text-brand {
+  background: linear-gradient(100deg, var(--brand-1), var(--brand-2) 55%, var(--brand-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-brand {
+  background: linear-gradient(110deg, var(--brand-1), var(--brand-2) 55%, var(--brand-3));
+}
+
+/* Soft colored blobs behind the hero. */
+@utility bg-glow {
+  background:
+    radial-gradient(40rem 20rem at 10% -10%, color-mix(in oklab, var(--brand-1) 22%, transparent), transparent 70%),
+    radial-gradient(30rem 18rem at 90% 0%, color-mix(in oklab, var(--brand-2) 18%, transparent), transparent 70%),
+    radial-gradient(30rem 16rem at 60% 110%, color-mix(in oklab, var(--brand-3) 14%, transparent), transparent 70%);
+}
