@@ -8,19 +8,20 @@ A promise starts working when it is created, not when it is awaited. If requests
 
 ```js run
 const wait = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms))
+// Each wait is 100 ms; timers are not exact, so compare with 150 ms rather than 200.
 let t = Date.now()
-await wait(50, "a")
-await wait(50, "b")
-console.log("one by one:", Date.now() - t >= 100)
+await wait(100, "a")
+await wait(100, "b")
+console.log("one by one, over 150 ms:", Date.now() - t > 150)
 
 t = Date.now()
-await Promise.all([wait(50, "a"), wait(50, "b")])
-console.log("together under 100 ms:", Date.now() - t < 100)
+await Promise.all([wait(100, "a"), wait(100, "b")])
+console.log("together, under 150 ms:", Date.now() - t < 150)
 ```
 
 ```output
-one by one: true
-together under 100 ms: true
+one by one, over 150 ms: true
+together, under 150 ms: true
 ```
 
 ## Comparison
