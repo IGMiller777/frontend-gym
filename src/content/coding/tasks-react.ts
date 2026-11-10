@@ -375,7 +375,7 @@ await waitFor(() => expect(screen.getByText('value: ab')).toBeTruthy())`,
         name: { ru: 'из серии быстрых изменений остаётся последнее', en: 'out of a quick burst of changes the last one wins' },
         code: `const seen = []
 function Probe({ value }) {
-  const v = useDebouncedValue(value, 50)
+  const v = useDebouncedValue(value, 200)
   seen.push(v)
   return <p>value: {v}</p>
 }
@@ -391,13 +391,13 @@ expect([...new Set(seen)]).toEqual(['r', 'react'])`,
         name: { ru: 'каждое изменение перезапускает таймер', en: 'every change restarts the timer' },
         hidden: true,
         code: `function Probe({ value }) {
-  return <p>value: {useDebouncedValue(value, 60)}</p>
+  return <p>value: {useDebouncedValue(value, 250)}</p>
 }
 const { rerender } = render(<Probe value="1" />)
 rerender(<Probe value="2" />)
-await sleep(40)
+await sleep(150)
 rerender(<Probe value="3" />)
-await sleep(40)
+await sleep(150)
 expect(screen.getByText('value: 1')).toBeTruthy()
 await waitFor(() => expect(screen.getByText('value: 3')).toBeTruthy())`,
       },
@@ -869,12 +869,14 @@ export function Demo() {
     tests: [
       {
         name: { ru: 'новое состояние видно сразу, до ответа save', en: 'the new state shows at once, before save answers' },
-        code: `render(<LikeButton liked={false} count={10} save={() => sleep(50)} />)
+        code: `let done: () => void = () => {}
+render(<LikeButton liked={false} count={10} save={() => new Promise<void>((resolve) => { done = resolve })} />)
 const button = screen.getByRole('button', { name: 'Like' })
 await user.click(button)
 expect(button.getAttribute('aria-pressed')).toBe('true')
 expect(screen.getByText('11 likes')).toBeTruthy()
-await sleep(80)`,
+done()
+await flush()`,
       },
       {
         name: { ru: 'после успешного save состояние остаётся', en: 'after a successful save the state stays' },
@@ -889,9 +891,11 @@ expect(screen.getByText('11 likes')).toBeTruthy()`,
       },
       {
         name: { ru: 'при ошибке откат и сообщение', en: 'on error it rolls back and shows a message' },
-        code: `render(<LikeButton liked={true} count={5} save={() => sleep(20).then(() => Promise.reject(new Error('offline')))} />)
+        code: `let fail: (error: Error) => void = () => {}
+render(<LikeButton liked={true} count={5} save={() => new Promise<void>((_, reject) => { fail = reject })} />)
 await user.click(screen.getByRole('button', { name: 'Like' }))
 expect(screen.getByText('4 likes')).toBeTruthy()
+fail(new Error('offline'))
 await waitFor(() => expect(screen.getByText('Could not save')).toBeTruthy())
 expect(screen.getByText('5 likes')).toBeTruthy()
 expect(screen.getByRole('button', { name: 'Like' }).getAttribute('aria-pressed')).toBe('true')`,
