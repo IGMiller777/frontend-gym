@@ -758,6 +758,120 @@ expect(serialize(tree).split('\\n')).toEqual(['<p>', '  Hello, ', '  <em>', '   
     verified,
   },
   {
+    id: 'lru-cache',
+    track: 'js-core',
+    difficulty: 'medium',
+    minutes: 20,
+    title: { ru: 'LRU-кэш', en: 'LRU cache' },
+    summary: {
+      ru: 'Кэш ограниченного размера, который выбрасывает давно не использованную запись; get и set за O(1).',
+      en: 'A size-limited cache that evicts the least recently used entry; get and set in O(1).',
+    },
+    starter: `export class LRUCache<K, V> {
+  constructor(private capacity: number) {}
+
+  get(key: K): V | undefined {
+    return undefined
+  }
+
+  set(key: K, value: V): void {}
+
+  get size(): number {
+    return 0
+  }
+}
+`,
+    solution: `export class LRUCache<K, V> {
+  // Map iterates in insertion order: the first key is the least recently used.
+  private map = new Map<K, V>()
+
+  constructor(private capacity: number) {
+    if (!Number.isInteger(capacity) || capacity < 1) throw new RangeError('capacity must be a positive integer')
+  }
+
+  get(key: K): V | undefined {
+    if (!this.map.has(key)) return undefined
+    const value = this.map.get(key) as V
+    this.map.delete(key) // re-insert: now the most recently used
+    this.map.set(key, value)
+    return value
+  }
+
+  set(key: K, value: V): void {
+    this.map.delete(key) // updating an existing key also makes it the most recent
+    this.map.set(key, value)
+    if (this.map.size > this.capacity) this.map.delete(this.map.keys().next().value as K)
+  }
+
+  get size(): number {
+    return this.map.size
+  }
+}
+`,
+    tests: [
+      {
+        name: { ru: 'хранит и возвращает значения', en: 'stores and returns values' },
+        code: `const c = new LRUCache(2)
+c.set('a', 1)
+c.set('b', 2)
+expect(c.get('a')).toBe(1)
+expect(c.get('b')).toBe(2)
+expect(c.get('x')).toBe(undefined)`,
+      },
+      {
+        name: { ru: 'выбрасывает давно не использованную', en: 'evicts the least recently used' },
+        code: `const c = new LRUCache(2)
+c.set('a', 1)
+c.set('b', 2)
+c.get('a') // a is now the most recent
+c.set('c', 3) // evicts b
+expect([c.get('a'), c.get('b'), c.get('c')]).toEqual([1, undefined, 3])
+expect(c.size).toBe(2)`,
+      },
+      {
+        name: { ru: 'перезапись ключа освежает его', en: 'overwriting a key refreshes it' },
+        code: `const c = new LRUCache(2)
+c.set('a', 1)
+c.set('b', 2)
+c.set('a', 10)
+c.set('c', 3) // evicts b, not a
+expect([c.get('a'), c.get('b')]).toEqual([10, undefined])`,
+      },
+      {
+        name: { ru: 'undefined и null как значения', en: 'undefined and null as values' },
+        hidden: true,
+        code: `const c = new LRUCache(2)
+c.set('n', null)
+expect(c.get('n')).toBe(null)
+expect(c.size).toBe(1)`,
+      },
+      {
+        name: { ru: 'ключи-объекты и ёмкость 1', en: 'object keys and capacity 1' },
+        hidden: true,
+        code: `const k1 = {}
+const k2 = {}
+const c = new LRUCache(1)
+c.set(k1, 'one')
+c.set(k2, 'two')
+expect([c.get(k1), c.get(k2), c.size]).toEqual([undefined, 'two', 1])`,
+      },
+      {
+        name: { ru: 'миллион операций быстро (O(1))', en: 'a million operations fast (O(1))' },
+        hidden: true,
+        code: `const c = new LRUCache(1000)
+const start = performance.now()
+for (let i = 0; i < 1_000_000; i++) {
+  c.set(i % 5000, i)
+  c.get((i * 7) % 5000)
+}
+expect(c.size).toBe(1000)
+expect(performance.now() - start < 1500).toBe(true)`,
+      },
+    ],
+    sources: [mdn('Map', 'Web/JavaScript/Reference/Global_Objects/Map'), mdn('Map.prototype.keys()', 'Web/JavaScript/Reference/Global_Objects/Map/keys')],
+    verified,
+  },
+  {
     id: 'promise-any',
     track: 'js-async',
     difficulty: 'medium',

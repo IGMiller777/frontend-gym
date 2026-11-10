@@ -1,6 +1,6 @@
 ## What this lesson covers
 
-In the [first lesson](/learn/js-types) we saw that objects are passed by reference. That raises practical questions: how to copy an object, how to forbid changes, when to use `Map` instead of a plain object, and why memory can leak in the browser even though garbage collection is automatic.
+In the [first lesson](/learn/js-types) we saw that objects are passed by reference. That raises practical questions: how to copy an object, how to forbid changes and when to use `Map` instead of a plain object.
 
 ## Shallow copy
 
@@ -97,31 +97,7 @@ true
 
 `Set` stores unique values: `[...new Set(arr)]` removes duplicates from an array.
 
-## Garbage collection and leaks
-
-The garbage collector frees memory in JavaScript. Modern engines use mark-and-sweep: starting from roots (the global object, the current call stack), they mark every object reachable through references and remove the rest. So a leak in JavaScript is not "forgot to free" but "accidentally kept a reference". Typical sources:
-
-- an event listener or subscription not removed when leaving a page or unmounting a component;
-- a `setInterval` that keeps running;
-- a cache in a `Map` or global array that only grows;
-- a DOM node removed from the page but still stored in a variable;
-- a closure holding large data.
-
-The Memory panel in DevTools helps: comparing two heap snapshots shows which objects pile up.
-
-## WeakMap and WeakSet
-
-`WeakMap` is like `Map` but does not keep its keys alive: if nothing else references a key object, the collector may remove it together with its entry. The price: only objects (and non-registered symbols) can be keys, and you cannot iterate the collection, get its size or clear it.
-
-```js
-const meta = new WeakMap()
-function track(node) {
-  meta.set(node, { seenAt: Date.now() })
-}
-// When node is removed from the DOM and forgotten, the entry goes away too.
-```
-
-`WeakMap` suits data attached to someone else's object: metadata for DOM nodes, a cache of results per object, private instance data. `WeakRef` and `FinalizationRegistry` give even lower-level control, but the timing of garbage collection is not guaranteed, and MDN advises avoiding them when possible.
+How memory is freed and leaks, plus `WeakMap`, `WeakRef` and `FinalizationRegistry`, is covered in the [memory lesson](/learn/js-memory).
 
 ## Key points
 
@@ -129,4 +105,3 @@ function track(node) {
 - `JSON.parse(JSON.stringify())` loses dates, `Map`, `Set`, `undefined` and fails on cycles and `BigInt`.
 - `const` does not make an object immutable; `Object.freeze()` does, but only shallowly.
 - `Map` for dictionaries with dynamic keys, plain objects for records and JSON.
-- A leak is a forgotten reference; `WeakMap` stores data about an object without extending its life.

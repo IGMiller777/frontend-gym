@@ -6,7 +6,7 @@ import { reactTasks } from './tasks-react'
 import type { CodingTask } from './types'
 
 const order = [
-  'class-names', 'type-utilities', 'array-reduce', 'flatten', 'get-by-path', 'deep-omit', 'squash-object', 'data-merging', 'list-format', 'curry', 'function-call', 'memoize',
+  'class-names', 'type-utilities', 'array-reduce', 'flatten', 'get-by-path', 'deep-omit', 'squash-object', 'data-merging', 'list-format', 'curry', 'function-call', 'memoize', 'lru-cache',
   'debounce', 'throttle', 'promisify', 'promise-all', 'promise-any', 'deep-equal', 'event-emitter', 'deep-clone', 'html-serializer', 'json-stringify', 'map-limit',
   'get-elements-by-class-name', 'get-elements-by-style',
   'todo-list', 'accordion', 'use-debounced-value', 'tabs', 'search-users', 'like-button']

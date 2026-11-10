@@ -1,10 +1,11 @@
 import type { Source } from '../sources'
+import { jsCoreMoreLessons } from './js-core-more'
 import type { Lesson, Module } from './types'
 
 const mdn = (title: string, path: string): Source => ({ title: `MDN: ${title}`, url: `https://developer.mozilla.org/en-US/docs/${path}`, kind: 'official' })
 const verified = { date: '2026-11', version: 'ECMAScript 2025' }
 
-export const jsCoreLessons: Lesson[] = [
+const baseLessons: Lesson[] = [
   {
     id: 'js-types',
     track: 'js-core',
@@ -134,29 +135,29 @@ export const jsCoreLessons: Lesson[] = [
     track: 'js-core',
     emoji: '🧠',
     minutes: 14,
-    title: { ru: 'Объекты, копирование и память', en: 'Objects, copying and memory' },
+    title: { ru: 'Копирование, неизменяемость, Map и Set', en: 'Copying, immutability, Map and Set' },
     summary: {
-      ru: 'Поверхностная и глубокая копия, structuredClone, freeze, Map и Set, сборка мусора, утечки и WeakMap.',
-      en: 'Shallow vs deep copy, structuredClone, freeze, Map and Set, garbage collection, leaks and WeakMap.',
+      ru: 'Поверхностная и глубокая копия, structuredClone и его ограничения, freeze, когда брать Map и Set вместо объекта.',
+      en: 'Shallow vs deep copy, structuredClone and its limits, freeze, when to use Map and Set instead of an object.',
     },
     quiz: {
       ru: [
         { q: '`const copy = { ...user }`, затем `copy.address.city = "Rome"`. Изменится ли `user.address.city`?', options: ['Нет, spread создал полную копию', 'Да, вложенный объект общий', 'Только в строгом режиме', 'Будет TypeError при записи'], correct: 1, why: 'Spread копирует только верхний уровень, а на вложенный объект копируется ссылка.' },
         { q: 'Что сделает `structuredClone({ run() {} })`?', options: ['Скопирует объект с методом', 'Скопирует без метода', 'Бросит DataCloneError', 'Вернёт `undefined`'], correct: 2, why: 'Функции не клонируются: `structuredClone` бросает `DataCloneError`.' },
         { q: 'После `Object.freeze(obj)` можно ли изменить `obj.nested.value`?', options: ['Нет, freeze глубокий', 'Да, freeze поверхностный', 'Только через `Object.assign`', 'Только в нестрогом режиме'], correct: 1, why: '`Object.freeze` замораживает только сам объект. Для вложенных нужно рекурсивно морозить каждый уровень.' },
-        { q: 'Зачем хранить метаданные DOM-узлов в `WeakMap`, а не в `Map`?', options: ['WeakMap быстрее при поиске по ключу', 'Можно перебирать записи по порядку', 'Не мешает удалить узел из памяти', 'Ключами могут быть строки'], correct: 2, why: '`WeakMap` не удерживает ключи: удалённый и забытый узел соберётся вместе с записью. `Map` держал бы его вечно.' },
+        { q: 'Когда `Map` лучше обычного объекта?', options: ['Для записей с известными полями', 'Для словаря с ключами-объектами', 'Для отправки данных в JSON', 'Для доступа к полям через точку'], correct: 1, why: '`Map` принимает ключи любого типа, помнит порядок вставки и не пересекается с ключами прототипа. Объект удобен для записей с известными полями и JSON.' },
       ],
       en: [
         { q: '`const copy = { ...user }`, then `copy.address.city = "Rome"`. Does `user.address.city` change?', options: ['No, spread made a full copy', 'Yes, the nested object is shared', 'Only in strict mode', 'It throws TypeError on write'], correct: 1, why: 'Spread copies only the top level; the nested object is copied by reference.' },
         { q: 'What does `structuredClone({ run() {} })` do?', options: ['Copies the object with the method', 'Copies it without the method', 'Throws DataCloneError', 'Returns `undefined`'], correct: 2, why: 'Functions cannot be cloned: `structuredClone` throws `DataCloneError`.' },
         { q: 'After `Object.freeze(obj)`, can you change `obj.nested.value`?', options: ['No, freeze is deep', 'Yes, freeze is shallow', 'Only via `Object.assign`', 'Only in sloppy mode'], correct: 1, why: '`Object.freeze` freezes only the object itself. Nested objects must be frozen level by level.' },
-        { q: 'Why store DOM node metadata in a `WeakMap` rather than a `Map`?', options: ['WeakMap is faster for key lookups', 'You can iterate entries in order', 'It does not keep the node alive', 'Keys can be plain strings'], correct: 2, why: '`WeakMap` does not hold its keys: a removed and forgotten node is collected along with its entry. A `Map` would keep it forever.' },
+        { q: 'When is a `Map` better than a plain object?', options: ['For records with known fields', 'For a dictionary keyed by objects', 'For sending data as JSON', 'For dot access to the fields'], correct: 1, why: 'A `Map` accepts keys of any type, keeps insertion order and never clashes with prototype keys. An object suits records with known fields and JSON.' },
       ],
     },
     sources: [
       mdn('structuredClone()', 'Web/API/Window/structuredClone'),
       mdn('Memory management', 'Web/JavaScript/Guide/Memory_management'),
-      mdn('WeakMap', 'Web/JavaScript/Reference/Global_Objects/WeakMap'),
+      mdn('Map', 'Web/JavaScript/Reference/Global_Objects/Map'),
       mdn('Object.freeze()', 'Web/JavaScript/Reference/Global_Objects/Object/freeze'),
     ],
     verified,
@@ -193,6 +194,15 @@ export const jsCoreLessons: Lesson[] = [
     verified,
   },
 ]
+
+/** Path order: language basics first, then functions and objects, then runtime and modules. */
+const order = [
+  'js-types', 'js-numbers-strings', 'js-scope-closures', 'js-functions', 'js-this', 'js-prototypes', 'js-object-properties', 'js-objects-memory',
+  'js-arrays', 'js-iterators', 'js-errors', 'js-memory', 'js-patterns', 'js-caching', 'js-engine', 'js-modules',
+]
+const all = new Map([...baseLessons, ...jsCoreMoreLessons].map((l) => [l.id, l]))
+export const jsCoreLessons: Lesson[] = order.map((id) => all.get(id)!)
+if (jsCoreLessons.length !== all.size || jsCoreLessons.some((l) => !l)) throw new Error('js-core: lesson order is out of sync with lesson list')
 
 export const jsCoreModule: Module = {
   track: 'js-core',

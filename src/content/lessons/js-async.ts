@@ -200,6 +200,38 @@ export const jsAsyncLessons: Lesson[] = [
     ],
     verified,
   },
+  {
+    id: 'async-patterns',
+    track: 'js-async',
+    emoji: '🧰',
+    minutes: 14,
+    title: { ru: 'Асинхронные паттерны', en: 'Async patterns' },
+    summary: {
+      ru: 'Повтор с экспоненциальной задержкой, таймаут, ограничение параллельности, последовательная очередь, «побеждает последний», пачки запросов и Promise.withResolvers.',
+      en: 'Retry with exponential backoff, timeouts, a concurrency limit, a serial queue, "latest wins", request batching and Promise.withResolvers.',
+    },
+    quiz: {
+      ru: [
+        { q: 'Зачем к задержке повтора добавляют случайный разброс?', options: ['Чтобы повтор был быстрее', 'Чтобы клиенты не повторили разом', 'Так требует спецификация', 'Чтобы обойти кэш браузера'], correct: 1, why: 'Без разброса тысячи клиентов после сбоя повторят запрос в один и тот же момент и снова перегрузят сервер.' },
+        { q: 'Какой запрос нельзя повторять без ключа идемпотентности?', options: ['`GET /users`', '`HEAD /health`', '`POST /payments`', '`GET /config`'], correct: 2, why: 'Повтор неидемпотентной операции может выполнить её дважды, например дважды списать деньги.' },
+        { q: 'Что делает `Promise.race([task, timeout])` с самой задачей?', options: ['Отменяет её по таймауту', 'Ничего: задача продолжается', 'Ставит её на паузу', 'Перезапускает её снова'], correct: 1, why: 'Промис нельзя отменить снаружи; `race` только перестаёт ждать. Для `fetch` нужен `AbortSignal`.' },
+        { q: 'Как пул работников сохраняет порядок результатов?', options: ['Сортирует их в конце', 'Пишет по индексу задачи', 'Ждёт задачи по одной', 'Никак, порядок случайный'], correct: 1, why: 'Каждый работник берёт индекс синхронно и кладёт результат в `results[index]`.' },
+      ],
+      en: [
+        { q: 'Why add random jitter to the retry delay?', options: ['To make each retry faster', 'So clients do not retry at once', 'The HTTP spec requires it', 'To bypass the browser cache'], correct: 1, why: 'Without jitter, thousands of clients retry at the same moment after an outage and overload the server again.' },
+        { q: 'Which request must not be retried without an idempotency key?', options: ['`GET /users`', '`HEAD /health`', '`POST /payments`', '`GET /config`'], correct: 2, why: 'Retrying a non-idempotent operation can run it twice, for example charge money twice.' },
+        { q: 'What does `Promise.race([task, timeout])` do to the task itself?', options: ['Cancels it on timeout', 'Nothing: the task goes on', 'Pauses it for a while', 'Restarts it again'], correct: 1, why: 'A promise cannot be cancelled from outside; `race` only stops waiting. `fetch` needs an `AbortSignal`.' },
+        { q: 'How does a worker pool keep results in order?', options: ['It sorts them at the end', 'It writes by task index', 'It awaits tasks one by one', 'It does not: order is random'], correct: 1, why: 'Each worker takes an index synchronously and stores the result in `results[index]`.' },
+      ],
+    },
+    sources: [
+      mdn('AbortSignal.timeout()', 'Web/API/AbortSignal/timeout_static'),
+      mdn('Promise.withResolvers()', 'Web/JavaScript/Reference/Global_Objects/Promise/withResolvers'),
+      mdn('queueMicrotask()', 'Web/API/Window/queueMicrotask'),
+      mdn('Idempotent (glossary)', 'Glossary/Idempotent'),
+    ],
+    verified,
+  },
 ]
 
 export const jsAsyncModule: Module = {
