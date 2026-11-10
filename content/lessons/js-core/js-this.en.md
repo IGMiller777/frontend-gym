@@ -6,6 +6,20 @@ The examples in this lesson run as ES modules, which means strict mode. Modules 
 
 ## The rules
 
+How to find `this` in a regular function, checking the rules in order:
+
+```mermaid
+flowchart TD
+  A{"An arrow function?"} -->|yes| L["this of the outer code"]
+  A -->|no| N{"Called with new?"}
+  N -->|yes| NO["The new object"]
+  N -->|no| B{"bind, call or apply?"}
+  B -->|yes| X["The passed object"]
+  B -->|no| M{"Called as obj.method()?"}
+  M -->|yes| O["obj (what is left of the dot)"]
+  M -->|no| D["undefined in strict mode,<br/>globalThis in sloppy mode"]
+```
+
 | How the function is called | What `this` is |
 |---|---|
 | `obj.method()` | `obj`, the object left of the dot |

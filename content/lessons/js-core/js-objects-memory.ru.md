@@ -4,6 +4,20 @@
 
 ## Поверхностная копия
 
+Поверхностная копия создаёт новый объект верхнего уровня, но вложенные объекты остаются общими; глубокая копирует всё дерево:
+
+```mermaid
+flowchart LR
+  subgraph SH["copy = { ...user }"]
+    U1["user"] --> A1["address"]
+    C1["copy"] --> A1
+  end
+  subgraph DP["copy = structuredClone(user)"]
+    U2["user"] --> A2["address"]
+    C2["copy"] --> A3["копия address"]
+  end
+```
+
 Spread (`{ ...obj }`, `[...arr]`) и `Object.assign()` копируют только верхний уровень. Вложенные объекты остаются общими: копируется ссылка на них.
 
 ```js run

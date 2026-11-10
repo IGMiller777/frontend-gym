@@ -4,6 +4,17 @@
 
 ## Цепочка прототипов
 
+Цепочка для `const rex = new Dog()`, где `class Dog extends Animal`:
+
+```mermaid
+flowchart LR
+  R["rex<br/>{ name }"] -->|"[[Prototype]]"| DP["Dog.prototype<br/>{ bark }"]
+  DP -->|"[[Prototype]]"| AP["Animal.prototype<br/>{ eat }"]
+  AP -->|"[[Prototype]]"| OP["Object.prototype<br/>{ toString, hasOwnProperty }"]
+  OP -->|"[[Prototype]]"| N["null"]
+  Q["rex.toString()"] -.->|"не найдено у rex,<br/>ищем дальше по цепочке"| OP
+```
+
 У каждого объекта есть скрытая ссылка `[[Prototype]]` на другой объект или на `null`. Когда вы читаете свойство, которого у объекта нет, движок ищет его в прототипе, потом в прототипе прототипа и так до `null`. Если свойство не нашлось нигде, результат `undefined`, а не ошибка.
 
 ```js run

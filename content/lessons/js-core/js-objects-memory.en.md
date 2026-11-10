@@ -4,6 +4,20 @@ In the [first lesson](/learn/js-types) we saw that objects are passed by referen
 
 ## Shallow copy
 
+A shallow copy creates a new top-level object, but nested objects stay shared; a deep copy copies the whole tree:
+
+```mermaid
+flowchart LR
+  subgraph SH["copy = { ...user }"]
+    U1["user"] --> A1["address"]
+    C1["copy"] --> A1
+  end
+  subgraph DP["copy = structuredClone(user)"]
+    U2["user"] --> A2["address"]
+    C2["copy"] --> A3["address copy"]
+  end
+```
+
 Spread (`{ ...obj }`, `[...arr]`) and `Object.assign()` copy only the top level. Nested objects stay shared: only the reference to them is copied.
 
 ```js run

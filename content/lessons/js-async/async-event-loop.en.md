@@ -12,6 +12,19 @@ Hence the main rule: an async callback never interrupts running code. It waits u
 
 ## Two queues
 
+One turn of the browser event loop:
+
+```mermaid
+flowchart TD
+  T["Take one task<br/>(script, timer, event, message)"] --> R["Run until the stack is empty"]
+  R --> M["Run ALL microtasks<br/>(then, await, queueMicrotask),<br/>including ones added meanwhile"]
+  M --> Q{"Time to draw a frame?<br/>(usually every ~16 ms)"}
+  Q -->|yes| A["requestAnimationFrame callbacks"] --> S["Style → layout → paint → composite"]
+  Q -->|no| I
+  S --> I["If there is time:<br/>requestIdleCallback"]
+  I --> T
+```
+
 Callbacks wait in two places.
 
 | Queue | What goes there |

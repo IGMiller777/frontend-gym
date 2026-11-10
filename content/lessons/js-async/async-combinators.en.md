@@ -26,6 +26,14 @@ together, under 150 ms: true
 
 ## Comparison
 
+```mermaid
+flowchart LR
+  IN["[p1, p2, p3]"] --> ALL["all<br/>waits for every success,<br/>fails on the first error"]
+  IN --> ST["allSettled<br/>waits for all,<br/>never fails"]
+  IN --> RC["race<br/>the first to settle,<br/>success or error"]
+  IN --> AN["any<br/>the first success,<br/>AggregateError if all fail"]
+```
+
 | Method | Fulfills when | Rejects when | Result |
 |---|---|---|---|
 | `Promise.all` | **all** are fulfilled | the **first** one rejects | array of values in input order |

@@ -4,6 +4,16 @@
 
 ## Контроллер и сигнал
 
+```mermaid
+flowchart LR
+  C["new AbortController()"] -->|".signal"| S["AbortSignal"]
+  S --> F["fetch(url, { signal })"]
+  S --> L["addEventListener(type, fn, { signal })"]
+  S --> O["Своя функция:<br/>signal.throwIfAborted()<br/>и событие abort"]
+  C -->|"abort(reason)"| X["Все подписчики получают отмену:<br/>fetch бросает AbortError,<br/>обработчики снимаются"]
+  T["AbortSignal.timeout(ms)"] & U["сигнал пользователя"] --> ANY["AbortSignal.any([...])"]
+```
+
 - `const controller = new AbortController()` создаёт контроллер.
 - `controller.signal` это сигнал, его передают в операции, которые нужно уметь отменять.
 - `controller.abort(reason?)` отменяет: `signal.aborted` становится `true`, `signal.reason` получает причину, на сигнале срабатывает событие `abort`.

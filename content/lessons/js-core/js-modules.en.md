@@ -4,6 +4,14 @@ All modern frontend code is made of modules: every file with `import` and `expor
 
 ## ES modules
 
+ES modules load in three phases, which is why imports are known before any code runs:
+
+```mermaid
+flowchart LR
+  C["Construction<br/>find and load every<br/>import recursively"] --> L["Linking<br/>connect import names<br/>to export variables<br/>(live bindings)"]
+  L --> E["Evaluation<br/>each module once,<br/>dependencies first"]
+```
+
 ES modules (ESM) are the language standard. A module differs from a classic script in several ways:
 
 - **its own scope:** module variables do not leak into the global scope; only exports are visible outside;

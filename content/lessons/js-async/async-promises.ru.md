@@ -4,6 +4,16 @@
 
 ## Три состояния
 
+```mermaid
+stateDiagram-v2
+  [*] --> pending: new Promise(executor)
+  pending --> fulfilled: resolve(value)
+  pending --> rejected: reject(reason) или throw
+  fulfilled --> [*]: then(onFulfilled)
+  rejected --> [*]: catch(onRejected)
+  note right of pending: Состояние меняется один раз.<br/>Повторные resolve и reject игнорируются.
+```
+
 Промис находится в одном из состояний:
 
 - `pending`: результата ещё нет;

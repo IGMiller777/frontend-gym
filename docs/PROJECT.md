@@ -2,7 +2,7 @@
 
 Этот файл обновляется в каждом PR. Он отвечает на три вопроса: что уже сделано, где это лежит в коде и как добавить новое, ничего не сломав. План по этапам находится в [PLAN.md](PLAN.md), команды запуска в [README](../README.md).
 
-Последнее обновление: 2026-11-10, этап 4: треки React (уроки и компонентные задачи), Angular и Vue.
+Последнее обновление: 2026-11-10, проход покрытия JS: все темы заметок Notion и основные вопросы собеседований, схемы Mermaid в уроках, 24 задачи из списка GFE 75.
 
 ## Что реализовано
 
@@ -22,14 +22,14 @@
 
 ### Треки
 
-18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у десяти:
+18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у десяти. Число уроков в треке определяется таблицей покрытия заметок в аудите (все темы из Notion плюс основные вопросы собеседований), а не шаблоном; проход покрытия сделан для JS, React, Angular и Vue на очереди:
 
 | Трек | Уроки | Аудит заметок | Кодинг-задачи | «Что выведет» |
 |---|---|---|---|---|
-| `js-core` | 6 | `docs/content-audit/js-core.md` | 8 | 6 |
-| `js-async` | 6 | `docs/content-audit/js-async.md` | 4 | 7 (6 с трассой) |
+| `js-core` | 16 | `docs/content-audit/js-core.md` (там же таблица покрытия страницы «JS» для обоих JS-треков) | 18 | 6 |
+| `js-async` | 7 | `docs/content-audit/js-async.md` | 6 | 7 (6 с трассой) |
 | `typescript` | 6 | `docs/content-audit/typescript.md` | — | — |
-| `browser` | 6 | `docs/content-audit/browser.md` (там же ошибки для `network`, `html`, `rendering`, `react`, `angular`) | — | — |
+| `browser` | 6 | `docs/content-audit/browser.md` (там же ошибки для `network`, `html`, `rendering`, `react`, `angular`) | 2 (DOM) | — |
 | `network` | 6 | `docs/content-audit/network.md` | — | — |
 | `html` | 6 | `docs/content-audit/html.md` | — | — |
 | `css` | 6 | `docs/content-audit/css.md` | — | — |
@@ -45,6 +45,8 @@
 | Уроки с квизом и экзамен модуля | `/learn/:id`, `/track/:id/exam` | готово |
 | Кодинг-задачи (редактор, тесты в воркере, разбор, ИИ-ревью) | `/practice/coding`, `/code/:id` | готово |
 | Компонентные задачи React (TSX, тесты и превью в песочнице) | те же маршруты | готово |
+| DOM-задачи (TypeScript с настоящим DOM в той же песочнице) | те же маршруты | готово |
+| Схемы в уроках (Mermaid, лениво, в цветах темы) | блоки ```` ```mermaid ```` в уроках | готово |
 | «Что выведет код?» с пошаговым event loop | `/practice/predict`, `/predict/:id` | готово |
 | Наставник (вопрос по теме, стрим) | `/api/ask/stream` | только API, кнопки в интерфейсе нет |
 | Инциденты, mock-интервью | — | не начато, на главной помечены «скоро» |
@@ -55,18 +57,19 @@
 |---|---|
 | `src/App.tsx` | Маршруты, все страницы грузятся лениво |
 | `src/pages/` | Страницы: `Home`, `TrackPage`, `LessonPage`, `ExamPage`, `CodingListPage`, `CodingTaskPage`, `PredictListPage`, `PredictTaskPage` |
-| `src/components/` | `Markdown` (рендер уроков, блок вывода), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
+| `src/components/` | `Markdown` (рендер уроков, блок вывода), `Diagram` (блоки `mermaid`: Mermaid грузится лениво, тема из токенов `--surface`, `--ink`, `--brand-*`, перерисовка при смене темы, натуральный размер с горизонтальной прокруткой), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
 | `src/content/tracks.ts`, `overviews.ts` | Треки и их обзоры (RU/EN) |
 | `src/content/sources.ts` | Список официальных доменов (MDN, спецификации WHATWG, W3C, TC39, RFC, документация фреймворков), тип `Source` и `Verified` |
-| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`, `angular.ts`, `vue.ts`; `index.ts` собирает их |
+| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts` (порядок уроков задаёт массив `order`) и `js-core-more.ts` (уроки прохода покрытия), `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`, `angular.ts`, `vue.ts`; `index.ts` собирает их |
 | `content/lessons/<track>/<id>.{ru,en}.md` | Тексты уроков |
-| `src/content/coding/` | Кодинг-задачи: тесты, заготовка, эталон; `tasks-react.ts` компонентные задачи; `coding.test.ts` прогоняет эталоны в Node, `coding.react.test.ts` компонентные в jsdom |
+| `src/content/coding/` | Кодинг-задачи: тесты, заготовка, эталон; `tasks-core.ts`, `tasks-async.ts`, `tasks-more.ts` (задачи из GFE 75 и LRU), `tasks-dom.ts` (DOM-задачи), `tasks-react.ts` (компонентные); `coding.test.ts` прогоняет эталоны в Node, `coding.dom.test.ts` и `coding.react.test.ts` в jsdom |
 | `content/tasks/<id>.{ru,en}.md` | Условие и разбор задачи, разделены строкой `<!-- solution -->` |
 | `src/content/predict/` | Задачи «что выведет», `trace.ts` это модель трассы event loop и её проверка |
 | `src/content/progress.ts` | Что считается пройденным, XP |
 | `src/runner/` | Раннер тестов: `harness.ts` (работает в воркере, во фрейме и в Node; опции `jsx`, `modules`, `globals`, `afterEach`), `expect.ts`, `clock.ts` (поддельные таймеры), `worker.ts`, `run.ts` (лимит 6 с) |
 | `src/runner/react-runtime.ts`, `dom-testing.ts` | Компонентные задачи: модули React для `import`, помощники тестов `render`, `screen` (`getByRole`, `getByText`, `getByLabelText`), `user` (`click`, `type`, `clear`, `keyboard`), `waitFor`, `flush`, `sleep` |
-| `src/runner/react-frame.ts`, `run-frame.ts` | Песочница: точка входа фрейма и запуск из страницы (`runInFrame`, `mountPreview`) |
+| `src/runner/react-frame.ts`, `run-frame.ts` | Песочница: точка входа фрейма и запуск из страницы (`runInFrame(source, tests, 'react' \| 'dom')`, `mountPreview`) |
+| `src/runner/dom-runtime.ts` | DOM-задачи: помощник тестов `html(markup)` возвращает новый контейнер в документе, после теста он удаляется |
 | `scripts/build-frame.ts` | Собирает песочницу в `public/runner/react-frame.js` (React внутри, не коммитится); запускается в `pnpm dev` и `pnpm build`, вручную `pnpm build:frame` |
 | `src/i18n/` | Словари интерфейса; `ru.ts` задаёт форму, `en.ts` обязан её повторить |
 | `src/store.ts` | Прогресс: файл через API и localStorage |
@@ -76,6 +79,7 @@
 | `scripts/snippets.ts`, `typecheck.ts` | Извлечение и запуск примеров из уроков, проверка TypeScript и TSX в памяти (с типами `@types/react`) |
 | `scripts/dom-env.mjs` | Глобальные объекты страницы jsdom для режима `dom`; подключается через `node --import`, чтобы появиться раньше импортов примера |
 | `scripts/check-snippets.ts` | Быстрая проверка примеров одного файла урока во время написания |
+| `scripts/check-diagrams-file.ts`, `parse-diagrams.mjs` | Разбор схем Mermaid в указанных файлах настоящим парсером Mermaid под jsdom; `diagramProblems` в `content-checks.ts` делает то же для всех уроков в CI |
 | `scripts/quiz-lengths.ts` | Какие вопросы квизов выдают ответ длиной варианта и какой длины нужны остальные варианты |
 | `scripts/check-links.ts` | Проверка, что внешние источники отвечают |
 | `docs/content-audit/` | Аудит заметок Notion по трекам: ошибки, исправления, источники |
@@ -94,8 +98,9 @@
    - примеры Vue: ```` ```js run ```` или ```` ```ts run ```` (реактивность, Pinia, `vue/server-renderer`, `vue/compiler-sfc`) и ```` ```js dom ```` (компоненты через `createApp` со строковым шаблоном, Vue Router с `createMemoryHistory`). Шаблоны компилируются во время выполнения: Node-сборка `vue` содержит компилятор. Макросы `<script setup>` (`defineProps`, `defineModel`) показывают обычным блоком ```` ```vue ````, а запускаемый пример пишут тем же API без макросов (`useModel` вместо `defineModel`). В окружении jsdom есть глобальные `history` и `location`;
    - ```` ```ts check ```` и ```` ```tsx check ````: код должен пройти `tsc --strict` (для TSX с типами React); строку с ожидаемой ошибкой пометить `// @ts-expect-error: пояснение`;
    - в `js run` можно импортировать пакеты из devDependencies: так в уроке CSS специфичность считает `@bramus/specificity`;
-   - код в RU и EN одинаковый до символа, поэтому комментарии в коде пишутся на английском.
-4. Во время написания: `pnpm tsx scripts/check-snippets.ts content/lessons/<track>/<id>.ru.md`; квизы: `pnpm tsx scripts/quiz-lengths.ts <track>`.
+   - код в RU и EN одинаковый до символа, поэтому комментарии в коде пишутся на английском;
+   - ```` ```mermaid ````: схема (flowchart, sequenceDiagram, stateDiagram-v2, mindmap). Подписи на языке урока, поэтому в EN схема пишется своя. Схема должна помещаться примерно в 700 px: длинные цепочки рисовать сверху вниз (`TD`), вопросы в скруглённых узлах `([...])`, а не ромбах, переносы `<br/>`. Схема нужна в каждом уроке, где есть процесс, структура или сравнение.
+4. Во время написания: `pnpm tsx scripts/check-snippets.ts content/lessons/<track>/<id>.ru.md`, схемы `pnpm tsx scripts/check-diagrams-file.ts <файлы>`; квизы: `pnpm tsx scripts/quiz-lengths.ts <track>`.
    Английскую версию удобно писать шаблоном с местами под блоки кода из русской: так код в языках совпадает гарантированно.
 5. В конце: `pnpm check:content` и `pnpm check:links`.
 
@@ -108,6 +113,10 @@
 ### Кодинг-задача
 
 Объект в `src/content/coding/tasks-*.ts` (заготовка, эталон, видимые и скрытые тесты), id в порядке списка в `src/content/coding/index.ts`, тексты в `content/tasks/<id>.{ru,en}.md`. Тесты обязаны: эталон проходит всё, заготовка проваливает хотя бы один тест, оба проходят `tsc --strict`.
+
+### DOM-задача
+
+Объект в `src/content/coding/tasks-dom.ts` с `runtime: 'dom'`: обычный TypeScript, но выполняется в песочнице-iframe с настоящим DOM (в CI в jsdom, `coding.dom.test.ts`). В тестах есть `html(markup)`: разбирает разметку в новый контейнер, добавленный в документ (вычисленные стили работают), и возвращает его. Запрет встроенных методов проверяют скрытым тестом, который временно подменяет их на `Element.prototype`.
 
 ### Компонентная задача React
 
@@ -139,7 +148,7 @@
 
 | Команда | Что делает |
 |---|---|
-| `pnpm test` | Vitest: раннер, эталоны задач, контент (паритет языков, источники, ссылки, квизы, запуск примеров, `tsc` для TS-примеров, трассы) |
+| `pnpm test` | Vitest: раннер, эталоны задач, контент (паритет языков, источники, ссылки, квизы, запуск примеров, `tsc` для TS-примеров, разбор схем Mermaid, трассы) |
 | `pnpm typecheck`, `pnpm lint`, `pnpm build` | Типы, oxlint, сборка |
 | `pnpm check:content` | Те же проверки контента с понятным выводом |
 | `pnpm check:links` | Все внешние источники отвечают (нужна сеть, в CI не входит) |
@@ -153,7 +162,8 @@
 
 ## Известные ограничения
 
-- Чанк страницы задачи около 519 КБ (CodeMirror), главный чанк около 320 КБ (данные задач для XP в шапке).
+- Чанк страницы задачи около 519 КБ (CodeMirror).
+- Главный чанк около 735 КБ (220 КБ gzip): в нём метаданные всех уроков, квизы, экзамены и данные задач (для XP в шапке и списков). На `main` до прохода покрытия JS было около 642 КБ. Тексты уроков и Mermaid (около 100 КБ) грузятся лениво. Вынести квизы и задачи в ленивые чанки стоит отдельной задачей.
 - Песочница компонентов: `<iframe sandbox="allow-scripts allow-forms">` без `allow-same-origin`, у фрейма непрозрачный origin, доступа к странице, `localStorage` и cookies нет. Страница сама скачивает бандл и передаёт код во фрейм через `postMessage`, поэтому из фрейма не уходит ни одного запроса (встроенный браузер Claude такие запросы блокирует). Отправка формы без `preventDefault` не уводит фрейм, а пишет предупреждение в консоль задачи.
 - В песочнице production-сборка React: предупреждения разработки (ключи, `act`) там не появляются; в CI задачи идут на dev-сборке в jsdom.
 - Бесконечный цикл в компоненте: тайм-аут 6 с сработает, только если браузер выполняет фрейм в отдельном процессе; иначе вкладка зависнет, как от бесконечного цикла на обычной странице. Логические задачи без DOM по-прежнему идут в Web Worker и от этого защищены. Vue-задачи пока не сделаны.

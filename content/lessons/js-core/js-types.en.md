@@ -6,6 +6,17 @@ Every example with an "Output" block in this lesson is actually executed by the 
 
 ## Eight types
 
+The eight types split into seven primitives and objects:
+
+```mermaid
+flowchart TB
+  V["Value"] --> P["Primitives<br/>copied by value, immutable"]
+  V --> O["object<br/>passed by reference"]
+  P --> P1["string"] & P2["number"] & P3["bigint"] & P4["boolean"]
+  P --> P5["undefined"] & P6["symbol"] & P7["null<br/>(typeof gives 'object')"]
+  O --> O1["plain objects, arrays,<br/>functions (typeof 'function'),<br/>Date, Map, Set, ..."]
+```
+
 JavaScript has seven primitive types and one object type:
 
 | Type | Example | `typeof` |
@@ -96,6 +107,20 @@ true false
 ```
 
 ## == and ===
+
+How `==` compares values of different types (simplified from the spec):
+
+```mermaid
+flowchart TD
+  S{"Same type?"} -->|yes| E["Compare as ==="]
+  S -->|no| N{"null and undefined?"}
+  N -->|yes| T["true"]
+  N -->|no| O{"Is one an object?"}
+  O -->|yes| PR["Object → primitive<br/>(valueOf, then toString)"] --> S
+  O -->|no| B{"Is there a boolean?"}
+  B -->|yes| BN["boolean → number"] --> S
+  B -->|no| SN["string ↔ number:<br/>string to number"] --> S
+```
 
 `===` (strict equality) compares without coercion: different types mean "not equal". `==` (loose equality) first converts types following the algorithm in the spec:
 

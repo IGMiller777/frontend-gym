@@ -41,6 +41,14 @@ function themeVariables() {
     noteBkgColor: v('--surface'),
     noteBorderColor: v('--brand-3'),
     noteTextColor: v('--ink'),
+    // mindmap and timeline sections use the cScale palette
+    ...Object.fromEntries(
+      Array.from({ length: 12 }, (_, i) => [
+        [`cScale${i}`, i === 0 ? v('--brand-1') : v('--surface-2')],
+        [`cScaleLabel${i}`, i === 0 ? v('--surface') : v('--ink')],
+        [`cScaleInv${i}`, v('--brand-1')],
+      ]).flat(),
+    ),
   }
 }
 

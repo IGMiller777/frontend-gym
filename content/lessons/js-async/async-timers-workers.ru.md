@@ -66,6 +66,18 @@ const yieldToMain = () =>
 
 ## Web Workers
 
+```mermaid
+sequenceDiagram
+  participant M as Главный поток (UI)
+  participant W as Web Worker
+  M->>W: new Worker('worker.js', { type: 'module' })
+  M->>W: postMessage(data) (копия через structured clone)
+  Note over M: интерфейс остаётся отзывчивым
+  W->>W: тяжёлое вычисление
+  W-->>M: postMessage(result)
+  M->>M: событие message: обновить интерфейс
+```
+
 Если работа тяжёлая сама по себе (разбор большого файла, обработка изображения, шифрование), её переносят в **Web Worker**: отдельный поток со своим циклом событий. У воркера нет доступа к DOM, `window` и `document`, зато есть `fetch`, таймеры, промисы, IndexedDB и WebSocket.
 
 ```js

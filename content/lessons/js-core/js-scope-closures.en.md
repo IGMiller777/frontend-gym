@@ -4,6 +4,16 @@ In the [previous lesson](/learn/js-types) we looked at values. Now let us see wh
 
 ## Lexical scope
 
+Every function and block creates an environment with a link to the outer one. Variable lookup walks this chain outwards:
+
+```mermaid
+flowchart BT
+  B["if block: { let tmp }"] -->|outer environment| F["function counter(): { let count }"]
+  F -->|outer environment| M["Module: { const limit, function counter }"]
+  M -->|outer environment| G["Global: { globalThis, console, ... }"]
+  I["Inner function<br/>returned from counter"] -.->|"keeps a reference<br/>(closure)"| F
+```
+
 Scope decides which part of the code can access a variable. In JavaScript it is **lexical**: it is determined by where the variable is declared in the source, not by where a function is called from. Inner code sees outer variables, not the other way round.
 
 There are four levels:

@@ -249,6 +249,8 @@ export const jsAsyncModule: Module = {
         { q: '`fetch` с `signal: AbortSignal.timeout(100)` не успел за 100 мс. С чем отклонится промис?', options: ['`AbortError`', '`TimeoutError`', '`TypeError`', '`RangeError`'], correct: 1, why: 'Сигнал из `AbortSignal.timeout` отменяется с причиной `DOMException` по имени `TimeoutError`.' },
         { q: 'Что из этого ставит задачу, а не микрозадачу?', options: ['`queueMicrotask`', '`await`', '`setTimeout`', '`Promise.then`'], correct: 2, why: 'Таймеры, события и `postMessage` это задачи. Реакции промисов, `await` и `queueMicrotask` это микрозадачи.' },
         { q: 'Где выполнять тяжёлый разбор файла на 50 МБ, чтобы интерфейс не зависал?', options: ['В `requestAnimationFrame`', 'В микрозадачах', 'В Web Worker', 'В Service Worker'], correct: 2, why: 'Web Worker это отдельный поток для вычислений. Service Worker нужен для сети и кэша, а микрозадачи и `requestAnimationFrame` идут в главном потоке.' },
+        { q: 'Какие ошибки стоит повторять с экспоненциальной задержкой?', options: ['Любые ошибки подряд', 'Временные: 503, сеть', 'Ответы 404 и 400', 'Только синтаксические'], correct: 1, why: 'Повторяют временные сбои; ошибки клиента (`4xx`) от повтора не исчезнут.' },
+        { q: 'Как ограничить число одновременных запросов при загрузке 500 файлов?', options: ['`Promise.all` всех сразу', 'Пул из N работников', '`Promise.race` по одному', '`for await` без пула'], correct: 1, why: 'Пул берёт задачи из общей очереди и держит в полёте не больше N.' },
       ],
       en: [
         { q: 'What does `setTimeout(() => log(1)); Promise.resolve().then(() => log(2)); log(3)` print?', options: ['`1 2 3`', '`3 2 1`', '`3 1 2`', '`2 3 1`'], correct: 1, why: 'First the synchronous `3`, then the microtask `2`, then the timer task `1`.' },
@@ -259,6 +261,8 @@ export const jsAsyncModule: Module = {
         { q: 'A `fetch` with `signal: AbortSignal.timeout(100)` took longer than 100 ms. What does it reject with?', options: ['`AbortError`', '`TimeoutError`', '`TypeError`', '`RangeError`'], correct: 1, why: 'A signal from `AbortSignal.timeout` aborts with a `DOMException` named `TimeoutError`.' },
         { q: 'Which of these queues a task, not a microtask?', options: ['`queueMicrotask`', '`await`', '`setTimeout`', '`Promise.then`'], correct: 2, why: 'Timers, events and `postMessage` are tasks. Promise reactions, `await` and `queueMicrotask` are microtasks.' },
         { q: 'Where should a heavy parse of a 50 MB file run so the UI does not freeze?', options: ['In `requestAnimationFrame`', 'In microtasks', 'In a Web Worker', 'In a Service Worker'], correct: 2, why: 'A Web Worker is a separate thread for computation. A Service Worker is for network and caching; microtasks and `requestAnimationFrame` run on the main thread.' },
+        { q: 'Which errors are worth retrying with exponential backoff?', options: ['Any errors at all', 'Temporary: 503, network', 'Responses 404 and 400', 'Only syntax errors'], correct: 1, why: 'Retry temporary failures; client errors (`4xx`) will not go away on retry.' },
+        { q: 'How do you limit concurrent requests when uploading 500 files?', options: ['`Promise.all` on all at once', 'A pool of N workers', '`Promise.race` one by one', '`for await` with no pool'], correct: 1, why: 'A pool takes tasks from a shared queue and keeps at most N in flight.' },
       ],
     },
   },
