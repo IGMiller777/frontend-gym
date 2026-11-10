@@ -8,7 +8,7 @@ import { typeCheck } from './typecheck'
 
 const file = process.argv[2]
 const snippets = extractSnippets(readFileSync(file, 'utf8'))
-const ts = Object.fromEntries(snippets.filter((s) => s.lang === 'ts').map((s) => [`line-${s.line}.ts`, s.code]))
+const ts = Object.fromEntries(snippets.filter((s) => s.lang === 'ts' || s.lang === 'tsx').map((s) => [`line-${s.line}.${s.lang}`, s.code]))
 let bad = 0
 for (const [name, errors] of Object.entries(typeCheck(ts)))
   for (const e of errors) {

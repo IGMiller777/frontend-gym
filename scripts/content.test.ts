@@ -86,4 +86,29 @@ describe('checkers catch mistakes', () => {
     expect([dom.mode, dom.expected]).toEqual(['dom', '2'])
     expect(runSnippet(dom.code, dom.lang, dom.mode)).toBe('2')
   })
+
+  it('runs jsx dom blocks with React: act() flushes the render and its effects', () => {
+    const code = [
+      "import { act, useEffect, useState } from 'react'",
+      "import { createRoot } from 'react-dom/client'",
+      'function App() {',
+      '  const [n, setN] = useState(0)',
+      '  useEffect(() => { if (n === 0) setN(1) }, [n])',
+      '  return <b>{n}</b>',
+      '}',
+      "const el = document.createElement('div')",
+      'await act(() => createRoot(el).render(<App />))',
+      'console.log(el.innerHTML)',
+    ].join('\n')
+    const [s] = extractSnippets('```jsx dom\n' + code + '\n```\n\n```output\n<b>1</b>\n```\n')
+    expect([s.lang, s.mode]).toEqual(['jsx', 'dom'])
+    expect(runSnippet(s.code, s.lang, s.mode)).toBe('<b>1</b>')
+  })
+
+  it('type-checks tsx against the React types', () => {
+    const ok = "import { useRef } from 'react'\nexport const El = () => { const r = useRef<HTMLInputElement>(null); return <input ref={r} /> }"
+    expect(typeCheck({ 'ok.tsx': ok })['ok.tsx']).toEqual([])
+    const bad = 'export const El = () => <input value={1n} />'
+    expect(typeCheck({ 'bad.tsx': bad })['bad.tsx'].length).toBeGreaterThan(0)
+  })
 })
