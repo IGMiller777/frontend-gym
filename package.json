@@ -36,6 +36,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@bramus/specificity": "^2.4.3",
     "@hono/node-server": "^2.1.5",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",

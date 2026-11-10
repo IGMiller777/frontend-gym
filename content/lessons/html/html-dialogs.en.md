@@ -52,7 +52,7 @@ The `popover` attribute turns an element into a pop-up layer: a menu, a tooltip,
 - the layer also goes into the top layer, but the page does **not** become inert: it is not a modal;
 - the browser exposes the expanded state of a `popovertarget` button to screen readers by itself.
 
-The Popover API has been supported by all browsers since 2024. CSS Anchor Positioning (`anchor-name`, `position-anchor`) helps tie the layer's position to the button; where it is missing, the position is computed in script.
+The Popover API has been supported by all browsers since 2024. CSS Anchor Positioning (`anchor-name`, `position-anchor`) ties the layer's position to the button: it is in all major browsers, and for older versions the position is computed in script.
 
 ## inert
 
