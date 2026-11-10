@@ -105,6 +105,25 @@ describe('checkers catch mistakes', () => {
     expect(runSnippet(s.code, s.lang, s.mode)).toBe('<b>1</b>')
   })
 
+  it('runs Angular examples in JIT mode with signal inputs visible to the compiler', () => {
+    const code = [
+      "import { Component, input } from '@angular/core'",
+      "import { createApplication } from '@angular/platform-browser'",
+      "@Component({ selector: 'hello-name', template: `Hello {{ name() }}` })",
+      'class Hello {',
+      '  name = input.required<string>()',
+      '}',
+      "@Component({ selector: 'app-root', imports: [Hello], template: `<hello-name name=\"Ann\" />` })",
+      'class App {}',
+      "document.body.innerHTML = '<app-root></app-root>'",
+      'const app = await createApplication()',
+      'app.bootstrap(App)',
+      'await app.whenStable()',
+      'console.log(document.body.textContent)',
+    ].join('\n')
+    expect(runSnippet(code, 'ts', 'dom')).toBe('Hello Ann')
+  }, 30_000)
+
   it('type-checks tsx against the React types', () => {
     const ok = "import { useRef } from 'react'\nexport const El = () => { const r = useRef<HTMLInputElement>(null); return <input ref={r} /> }"
     expect(typeCheck({ 'ok.tsx': ok })['ok.tsx']).toEqual([])

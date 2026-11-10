@@ -455,11 +455,11 @@ export const overviews: Record<string, Localized<Overview>> = {
         },
         {
           title: 'Обнаружение изменений',
-          text: 'Раньше Zone.js перехватывал асинхронные API и запускал проверку всего дерева компонентов. Стратегия `OnPush` ограничивает проверку компонентами, у которых изменились входы, случились события или обновились сигналы. Zoneless-режим (`provideZonelessChangeDetection()`) убирает Zone.js полностью и опирается на сигналы и явные уведомления.',
+          text: 'Раньше Zone.js перехватывал асинхронные API и запускал проверку всего дерева компонентов. С Angular 21 приложения zoneless по умолчанию: проверку планируют сигналы в шаблоне, события шаблона и `markForCheck`. С Angular 22 компоненты по умолчанию `OnPush`: проверяются, когда изменились входы, случились их события или обновились прочитанные сигналы; прежний режим называется `Eager`.',
         },
         {
           title: 'Внедрение зависимостей',
-          text: 'Зависимость получают через `inject()` или параметр конструктора. Место провайдера определяет время жизни экземпляра: `providedIn: "root"` даёт один экземпляр на приложение, провайдер в компоненте создаёт отдельный экземпляр для каждого компонента.',
+          text: 'Зависимость получают через `inject()` или параметр конструктора. Место провайдера определяет время жизни экземпляра: `@Service()` (Angular 22) или `providedIn: "root"` дают один экземпляр на приложение, провайдер в компоненте создаёт отдельный экземпляр для каждого компонента.',
         },
         {
           title: 'RxJS и шаблоны',
@@ -480,11 +480,11 @@ export const overviews: Record<string, Localized<Overview>> = {
         },
         {
           title: 'Change detection',
-          text: 'Zone.js used to patch async APIs and trigger a check of the whole component tree. The `OnPush` strategy limits checks to components whose inputs changed, that handled events or whose signals updated. Zoneless mode (`provideZonelessChangeDetection()`) removes Zone.js entirely and relies on signals and explicit notifications.',
+          text: 'Zone.js used to patch async APIs and trigger a check of the whole component tree. Since Angular 21 apps are zoneless by default: checks are scheduled by signals in templates, template events and `markForCheck`. Since Angular 22 components are `OnPush` by default: they are checked when inputs change, their events fire or the signals they read update; the old mode is called `Eager`.',
         },
         {
           title: 'Dependency injection',
-          text: 'Dependencies come from `inject()` or a constructor parameter. Where the provider lives sets the instance lifetime: `providedIn: "root"` gives one instance per app, a component-level provider creates a separate instance per component.',
+          text: 'Dependencies come from `inject()` or a constructor parameter. Where the provider lives sets the instance lifetime: `@Service()` (Angular 22) or `providedIn: "root"` give one instance per app, a component-level provider creates a separate instance per component.',
         },
         {
           title: 'RxJS and templates',
