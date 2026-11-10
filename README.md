@@ -26,7 +26,12 @@ pnpm test        # vitest
 pnpm typecheck   # tsc -b (app + server)
 pnpm lint        # oxlint
 pnpm build
+pnpm check:content   # RU/EN parity, sources, links, quizzes, runs every ```js run example
+pnpm check:links     # every official source link answers (needs network)
 ```
+
+Уроки лежат в `content/lessons/<track>/<id>.{ru,en}.md`, метаданные и квизы в `src/content/lessons/`. Пример кода с блоком ` ```output ` сразу после ` ```js run ` выполняется в тестах как ES-модуль, и его вывод сверяется с текстом урока.
+Lessons live in `content/lessons/<track>/<id>.{ru,en}.md`, metadata and quizzes in `src/content/lessons/`. A ` ```js run ` example followed by an ` ```output ` block is executed in tests as an ES module and its output is compared with the lesson text.
 
 ## Структура / Layout
 

@@ -1,0 +1,118 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { locales } from '../src/i18n/types'
+import { lessons, modules } from '../src/content/lessons'
+import type { QuizQuestion } from '../src/content/lessons/types'
+import { isOfficial } from '../src/content/sources'
+import { tracks } from '../src/content/tracks'
+import { extractSnippets, runSnippet } from './snippets'
+
+export const ROOT = join(import.meta.dirname, '..')
+export const bodyPath = (track: string, id: string, locale: string) => join(ROOT, 'content', 'lessons', track, `${id}.${locale}.md`)
+export const readBody = (track: string, id: string, locale: string) => readFileSync(bodyPath(track, id, locale), 'utf8')
+
+const headings = (md: string) => md.split('\n').filter((l) => l.startsWith('## ')).length
+const fences = (md: string) => (md.match(/^```/gm) ?? []).length / 2
+
+/** Problems in one quiz pair (ru/en), as human-readable strings. */
+export function quizProblems(where: string, quiz: Record<string, QuizQuestion[]>): string[] {
+  const out: string[] = []
+  const [a, b] = locales.map((l) => quiz[l])
+  if (a.length !== b.length) out.push(`${where}: ${a.length} questions in ru, ${b.length} in en`)
+  a.forEach((q, i) => {
+    const other = b[i]
+    if (!other) return
+    if (q.options.length !== other.options.length) out.push(`${where} #${i + 1}: option count differs between languages`)
+    if (q.correct !== other.correct) out.push(`${where} #${i + 1}: correct index differs between languages`)
+  })
+  for (const l of locales)
+    quiz[l].forEach((q, i) => {
+      if (q.correct < 0 || q.correct >= q.options.length) out.push(`${where}.${l} #${i + 1}: correct index out of range`)
+      if (q.options.length < 3) out.push(`${where}.${l} #${i + 1}: fewer than 3 options`)
+      if (new Set(q.options).size !== q.options.length) out.push(`${where}.${l} #${i + 1}: duplicate options`)
+      const len = q.options.map((o) => o.length)
+      const others = len.filter((_, k) => k !== q.correct)
+      const avg = others.reduce((s, x) => s + x, 0) / others.length
+      if (len[q.correct] > 1.3 * avg && len[q.correct] - avg > 8) out.push(`${where}.${l} #${i + 1}: the correct option is much longer than the others (gives the answer away)`)
+      if (!q.why.trim()) out.push(`${where}.${l} #${i + 1}: empty explanation`)
+    })
+  return out
+}
+
+/** Static checks: files, language parity, sources, links, quizzes. Fast, no code execution. */
+export function staticProblems(): string[] {
+  const out: string[] = []
+  const lessonIds = new Set(lessons.map((l) => l.id))
+  const trackIds = new Set(tracks.map((t) => t.id))
+  if (lessonIds.size !== lessons.length) out.push('duplicate lesson ids')
+
+  for (const lesson of lessons) {
+    const w = `lesson ${lesson.id}`
+    if (!trackIds.has(lesson.track)) out.push(`${w}: unknown track ${lesson.track}`)
+    if (!/^\d{4}-\d{2}$/.test(lesson.verified.date)) out.push(`${w}: verified.date must be YYYY-MM`)
+    if (!lesson.sources.some((s) => s.kind !== 'article')) out.push(`${w}: needs at least one official or spec source`)
+    for (const s of lesson.sources) if (s.kind !== 'article' && !isOfficial(s.url)) out.push(`${w}: ${s.url} is not on the official domain list`)
+    out.push(...quizProblems(w, lesson.quiz))
+
+    const bodies: Record<string, string> = {}
+    for (const l of locales) {
+      if (!existsSync(bodyPath(lesson.track, lesson.id, l))) {
+        out.push(`${w}: missing ${lesson.id}.${l}.md`)
+        continue
+      }
+      bodies[l] = readBody(lesson.track, lesson.id, l)
+      for (const m of bodies[l].matchAll(/\]\(\/(learn|track)\/([a-z0-9-]+)\)/g)) {
+        const ok = m[1] === 'learn' ? lessonIds.has(m[2]) : trackIds.has(m[2])
+        if (!ok) out.push(`${w}.${l}: broken link /${m[1]}/${m[2]}`)
+      }
+      if (/^#\s/m.test(bodies[l])) out.push(`${w}.${l}: use ## headings, the page renders the title itself`)
+    }
+    if (bodies.ru && bodies.en) {
+      if (headings(bodies.ru) !== headings(bodies.en)) out.push(`${w}: section count differs (ru ${headings(bodies.ru)}, en ${headings(bodies.en)})`)
+      if (fences(bodies.ru) !== fences(bodies.en)) out.push(`${w}: code block count differs between languages`)
+      const [ru, en] = [extractSnippets(bodies.ru), extractSnippets(bodies.en)]
+      if (ru.length !== en.length) out.push(`${w}: runnable example count differs between languages`)
+      ru.forEach((s, i) => {
+        if (!en[i]) return
+        if (s.code !== en[i].code) out.push(`${w}: runnable example #${i + 1} has different code in ru and en`)
+        if (s.expected !== en[i].expected) out.push(`${w}: runnable example #${i + 1} has different output in ru and en`)
+      })
+      for (const [l, list] of [['ru', ru], ['en', en]] as const)
+        list.forEach((s) => {
+          if (s.expected === null) out.push(`${w}.${l}:${s.line}: runnable example without an output block`)
+        })
+    }
+  }
+
+  for (const m of modules) {
+    const w = `module ${m.track}`
+    if (!trackIds.has(m.track)) out.push(`${w}: unknown track`)
+    for (const id of m.lessons) {
+      const lesson = lessons.find((l) => l.id === id)
+      if (!lesson) out.push(`${w}: unknown lesson ${id}`)
+      else if (lesson.track !== m.track) out.push(`${w}: lesson ${id} belongs to ${lesson.track}`)
+    }
+    if (m.exam.pass <= 0 || m.exam.pass > 1) out.push(`${w}: exam.pass must be in (0, 1]`)
+    out.push(...quizProblems(`${w} exam`, m.exam.questions))
+  }
+  return out
+}
+
+/** Runs every ```js run example (in Russian bodies; parity guarantees English is identical) and compares output. */
+export function snippetProblems(): string[] {
+  const out: string[] = []
+  for (const lesson of lessons) {
+    if (!existsSync(bodyPath(lesson.track, lesson.id, 'ru'))) continue
+    for (const s of extractSnippets(readBody(lesson.track, lesson.id, 'ru'))) {
+      let got: string
+      try {
+        got = runSnippet(s.code)
+      } catch (e) {
+        out.push(`${lesson.id}.ru:${s.line}: example threw: ${(e as Error).message.split('\n')[0]}`)
+        continue
+      }
+      if (s.expected !== null && got !== s.expected) out.push(`${lesson.id}.ru:${s.line}: output differs\n  expected: ${JSON.stringify(s.expected)}\n  actual:   ${JSON.stringify(got)}`)
+    }
+  }
+  return out
+}
