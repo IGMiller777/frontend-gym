@@ -2,7 +2,7 @@
 
 Этот файл обновляется в каждом PR. Он отвечает на три вопроса: что уже сделано, где это лежит в коде и как добавить новое, ничего не сломав. План по этапам находится в [PLAN.md](PLAN.md), команды запуска в [README](../README.md).
 
-Последнее обновление: 2026-11-10, этап 3 завершён треком CSS.
+Последнее обновление: 2026-11-10, этап 4 начат треком React.
 
 ## Что реализовано
 
@@ -13,8 +13,8 @@
 | 0. Каркас: i18n, темы, 18 треков с обзорами, API, CI | готово | #3 |
 | 1. Контент-инструменты и модуль «JavaScript: основа» | готово | #4 |
 | 2. Раннер кода, 12 кодинг-задач, «Что выведет код?» с визуализатором | готово | #5 |
-| 3. Платформа и язык: 6 треков | готово: `js-async`, `typescript`, `browser`, `network`, `html`, `css` | #6–#10, следующий |
-| 4. React, Angular, Vue (и iframe-раннер компонентов) | не начато | |
+| 3. Платформа и язык: 6 треков | готово: `js-async`, `typescript`, `browser`, `network`, `html`, `css` | #6–#11 |
+| 4. React, Angular, Vue (и iframe-раннер компонентов) | в работе: уроки `react` готовы; далее компонентные задачи React, Angular, Vue | следующий |
 | 5. Состояние, API, рендеринг, производительность, безопасность, тесты, инструменты, system design | не начато | |
 | 6. Mock-интервью | не начато | |
 | 7. Симулятор инцидентов | не начато | |
@@ -22,7 +22,7 @@
 
 ### Треки
 
-18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у семи:
+18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у восьми:
 
 | Трек | Уроки | Аудит заметок | Кодинг-задачи | «Что выведет» |
 |---|---|---|---|---|
@@ -33,7 +33,8 @@
 | `network` | 6 | `docs/content-audit/network.md` | — | — |
 | `html` | 6 | `docs/content-audit/html.md` | — | — |
 | `css` | 6 | `docs/content-audit/css.md` | — | — |
-| остальные 11 | только обзор | — | — | — |
+| `react` | 6 | `docs/content-audit/react.md` (там же актуальные версии и раздел «Что устарело») | — | — |
+| остальные 10 | только обзор | — | — | — |
 
 ### Режимы
 
@@ -54,7 +55,7 @@
 | `src/components/` | `Markdown` (рендер уроков, блок вывода), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
 | `src/content/tracks.ts`, `overviews.ts` | Треки и их обзоры (RU/EN) |
 | `src/content/sources.ts` | Список официальных доменов (MDN, спецификации WHATWG, W3C, TC39, RFC, документация фреймворков), тип `Source` и `Verified` |
-| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`; `index.ts` собирает их |
+| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`; `index.ts` собирает их |
 | `content/lessons/<track>/<id>.{ru,en}.md` | Тексты уроков |
 | `src/content/coding/` | Кодинг-задачи: тесты, заготовка, эталон; `coding.test.ts` прогоняет эталоны |
 | `content/tasks/<id>.{ru,en}.md` | Условие и разбор задачи, разделены строкой `<!-- solution -->` |
@@ -66,7 +67,8 @@
 | `src/index.css` | Дизайн-токены, светлая и тёмная темы, цвета подсветки кода |
 | `server/` | Hono API: прогресс (`progress.ts`), наставник (`ask.ts`), ревью кода (`review.ts`), вызов `claude -p` (`claude.ts`) |
 | `scripts/content-checks.ts` | Все проверки контента; `check-content.ts` запускает их из консоли |
-| `scripts/snippets.ts`, `typecheck.ts` | Извлечение и запуск примеров из уроков, проверка TypeScript в памяти |
+| `scripts/snippets.ts`, `typecheck.ts` | Извлечение и запуск примеров из уроков, проверка TypeScript и TSX в памяти (с типами `@types/react`) |
+| `scripts/dom-env.mjs` | Глобальные объекты страницы jsdom для режима `dom`; подключается через `node --import`, чтобы появиться раньше импортов примера |
 | `scripts/check-snippets.ts` | Быстрая проверка примеров одного файла урока во время написания |
 | `scripts/quiz-lengths.ts` | Какие вопросы квизов выдают ответ длиной варианта и какой длины нужны остальные варианты |
 | `scripts/check-links.ts` | Проверка, что внешние источники отвечают |
@@ -81,7 +83,8 @@
 3. Примеры кода:
    - ```` ```js run ```` или ```` ```ts run ````, а сразу за ним ```` ```output ````: код выполнится, вывод сравнится с текстом;
    - ```` ```js dom ```` и ```` ```output ````: то же, но на странице jsdom с адресом `https://app.example.com/` (`document`, события, Custom Elements, Shadow DOM, `document.cookie`, `localStorage`, формы и `FormData`; раскладки, стилей, `<dialog>.showModal()` и Popover API нет). Роли и доступные имена считают импортом `dom-accessibility-api` (`getRole`, `computeAccessibleName`); она не знает `<search>` и роль `<header>` внутри `<article>`;
-   - ```` ```ts check ````: код должен пройти `tsc --strict`; строку с ожидаемой ошибкой пометить `// @ts-expect-error: пояснение`;
+   - ```` ```jsx dom ```` или ```` ```tsx dom ```` и ```` ```output ````: примеры React (19.3, сборка для разработки, поэтому StrictMode повторяет вызовы) на той же странице jsdom. JSX компилируется автоматическим runtime, `IS_REACT_ACT_ENVIRONMENT` включён: пример сам импортирует `act` и `createRoot` и оборачивает рендер и клики в `await act(...)`. Для серверного рендера ```` ```jsx run ```` (Node без DOM: `react-dom/server`, `react-dom/static`);
+   - ```` ```ts check ```` и ```` ```tsx check ````: код должен пройти `tsc --strict` (для TSX с типами React); строку с ожидаемой ошибкой пометить `// @ts-expect-error: пояснение`;
    - в `js run` можно импортировать пакеты из devDependencies: так в уроке CSS специфичность считает `@bramus/specificity`;
    - код в RU и EN одинаковый до символа, поэтому комментарии в коде пишутся на английском.
 4. Во время написания: `pnpm tsx scripts/check-snippets.ts content/lessons/<track>/<id>.ru.md`; квизы: `pnpm tsx scripts/quiz-lengths.ts <track>`.
@@ -132,5 +135,6 @@
 ## Известные ограничения
 
 - Чанк страницы задачи около 519 КБ (CodeMirror), главный чанк около 320 КБ (данные задач для XP в шапке).
-- Компонентные задачи (React, Vue) ждут iframe-раннера на этапе 4.
+- Компонентные кодинг-задачи (React, Vue) ждут iframe-раннера: следующий блок этапа 4. Примеры в уроках React уже исполняются в jsdom.
+- В jsdom нет раскладки: размеры элементов в примерах всегда 0, поэтому измерения в `useLayoutEffect` объясняются текстом, а не примером.
 - Проверка TS-примеров использует API TypeScript 6.0: у TypeScript 7 пока нет совместимого JS API.

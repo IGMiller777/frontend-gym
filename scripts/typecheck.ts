@@ -6,6 +6,9 @@ export const checkOptions: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES2022,
   module: ts.ModuleKind.ESNext,
   lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
+  // tsx examples import `react` and use the automatic JSX runtime, as a Vite + React project does.
+  moduleResolution: ts.ModuleResolutionKind.Bundler,
+  jsx: ts.JsxEmit.ReactJSX,
   noEmit: true,
   types: [],
 }

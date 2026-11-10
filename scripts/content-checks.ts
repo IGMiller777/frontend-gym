@@ -203,7 +203,7 @@ export function snippetProblems(): string[] {
     if (!existsSync(bodyPath(lesson.track, lesson.id, 'ru'))) continue
     for (const s of extractSnippets(readBody(lesson.track, lesson.id, 'ru'))) {
       const where = `${lesson.id}.ru:${s.line}`
-      if (s.lang === 'ts') tsFiles[`${where}.ts`] = s.code
+      if (s.lang === 'ts' || s.lang === 'tsx') tsFiles[`${where}.${s.lang}`] = s.code
       if (s.mode === 'check') continue
       let got: string
       try {
@@ -216,6 +216,6 @@ export function snippetProblems(): string[] {
     }
   }
   for (const [file, errors] of Object.entries(Object.keys(tsFiles).length ? typeCheck(tsFiles) : {}))
-    for (const e of errors) out.push(`${file.replace(/\.ts$/, '')}: type error at block line ${e}`)
+    for (const e of errors) out.push(`${file.replace(/\.tsx?$/, '')}: type error at block line ${e}`)
   return out
 }
