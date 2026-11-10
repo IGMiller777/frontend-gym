@@ -53,16 +53,20 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "@vue/devtools-api": "^8.2.1",
     "concurrently": "^10.0.6",
     "dom-accessibility-api": "^0.7.1",
     "hono": "^4.13.13",
     "jsdom": "^31.0.0",
     "oxlint": "^1.81.0",
+    "pinia": "4.1.0",
     "rxjs": "7.8.2",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "vue": "3.5.45",
+    "vue-router": "5.4.0"
   }
 }
