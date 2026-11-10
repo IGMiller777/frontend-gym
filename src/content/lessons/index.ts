@@ -1,12 +1,13 @@
 import { browserLessons, browserModule } from './browser'
+import { htmlLessons, htmlModule } from './html'
 import { jsAsyncLessons, jsAsyncModule } from './js-async'
 import { jsCoreLessons, jsCoreModule } from './js-core'
 import { networkLessons, networkModule } from './network'
 import { typescriptLessons, typescriptModule } from './typescript'
 import type { Lesson, Module } from './types'
 
-export const lessons: Lesson[] = [...jsCoreLessons, ...jsAsyncLessons, ...typescriptLessons, ...browserLessons, ...networkLessons]
-export const modules: Module[] = [jsCoreModule, jsAsyncModule, typescriptModule, browserModule, networkModule]
+export const lessons: Lesson[] = [...jsCoreLessons, ...jsAsyncLessons, ...typescriptLessons, ...browserLessons, ...networkLessons, ...htmlLessons]
+export const modules: Module[] = [jsCoreModule, jsAsyncModule, typescriptModule, browserModule, networkModule, htmlModule]
 
 const byId = new Map(lessons.map((l) => [l.id, l]))
 export const getLesson = (id: string) => byId.get(id)
