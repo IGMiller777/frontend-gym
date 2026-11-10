@@ -1,26 +1,7 @@
-import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 import { runTests } from '../../runner/harness'
+import { typeCheck } from '../../../scripts/typecheck'
 import { codingTasks } from '.'
-
-/**
- * Type-checks every starter and solution in one in-memory program (strict mode).
- * Returns diagnostics per virtual file name.
- */
-function typeCheck(files: Record<string, string>): Record<string, string[]> {
-  const options: ts.CompilerOptions = { strict: true, target: ts.ScriptTarget.ES2023, lib: ['lib.es2023.d.ts', 'lib.dom.d.ts'], noEmit: true, types: [] }
-  const host = ts.createCompilerHost(options)
-  const read = host.getSourceFile.bind(host)
-  host.getSourceFile = (name, lang) => (name in files ? ts.createSourceFile(name, files[name], lang) : read(name, lang))
-  const program = ts.createProgram(Object.keys(files), options, host)
-  const out: Record<string, string[]> = Object.fromEntries(Object.keys(files).map((f) => [f, []]))
-  for (const d of ts.getPreEmitDiagnostics(program)) {
-    const name = d.file?.fileName ?? '(global)'
-    const pos = d.file && d.start !== undefined ? d.file.getLineAndCharacterOfPosition(d.start) : null
-    ;(out[name] ??= []).push(`${pos ? `${pos.line + 1}:${pos.character + 1} ` : ''}${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`)
-  }
-  return out
-}
 
 const files = Object.fromEntries(codingTasks.flatMap((t) => [[`${t.id}.solution.ts`, t.solution], [`${t.id}.starter.ts`, t.starter]]))
 let diagnostics: Record<string, string[]> | undefined

@@ -9,6 +9,7 @@ import type { QuizQuestion } from '../src/content/lessons/types'
 import { isOfficial, type Source, type Verified } from '../src/content/sources'
 import { tracks } from '../src/content/tracks'
 import { extractSnippets, runSnippet } from './snippets'
+import { typeCheck } from './typecheck'
 
 export const ROOT = join(import.meta.dirname, '..')
 export const bodyPath = (track: string, id: string, locale: string) => join(ROOT, 'content', 'lessons', track, `${id}.${locale}.md`)
@@ -78,12 +79,13 @@ export function staticProblems(): string[] {
       if (ru.length !== en.length) out.push(`${w}: runnable example count differs between languages`)
       ru.forEach((s, i) => {
         if (!en[i]) return
-        if (s.code !== en[i].code) out.push(`${w}: runnable example #${i + 1} has different code in ru and en`)
+        if (s.code !== en[i].code || s.lang !== en[i].lang || s.mode !== en[i].mode) out.push(`${w}: runnable example #${i + 1} has different code in ru and en`)
         if (s.expected !== en[i].expected) out.push(`${w}: runnable example #${i + 1} has different output in ru and en`)
       })
       for (const [l, list] of [['ru', ru], ['en', en]] as const)
         list.forEach((s) => {
-          if (s.expected === null) out.push(`${w}.${l}:${s.line}: runnable example without an output block`)
+          if (s.mode === 'run' && s.expected === null) out.push(`${w}.${l}:${s.line}: runnable example without an output block`)
+          if (s.mode === 'check' && s.expected !== null) out.push(`${w}.${l}:${s.line}: a "check" example does not run, drop its output block`)
         })
     }
   }
@@ -190,21 +192,30 @@ export function predictProblems(run = true): string[] {
   return out
 }
 
-/** Runs every ```js run example (in Russian bodies; parity guarantees English is identical) and compares output. */
+/**
+ * Type-checks every ```ts block and runs every ```js run / ```ts run example (in Russian bodies;
+ * parity guarantees English is identical), comparing the output.
+ */
 export function snippetProblems(): string[] {
   const out: string[] = []
+  const tsFiles: Record<string, string> = {}
   for (const lesson of lessons) {
     if (!existsSync(bodyPath(lesson.track, lesson.id, 'ru'))) continue
     for (const s of extractSnippets(readBody(lesson.track, lesson.id, 'ru'))) {
+      const where = `${lesson.id}.ru:${s.line}`
+      if (s.lang === 'ts') tsFiles[`${where}.ts`] = s.code
+      if (s.mode !== 'run') continue
       let got: string
       try {
-        got = runSnippet(s.code)
+        got = runSnippet(s.code, s.lang)
       } catch (e) {
-        out.push(`${lesson.id}.ru:${s.line}: example threw: ${(e as Error).message.split('\n')[0]}`)
+        out.push(`${where}: example threw: ${(e as Error).message.split('\n')[0]}`)
         continue
       }
-      if (s.expected !== null && got !== s.expected) out.push(`${lesson.id}.ru:${s.line}: output differs\n  expected: ${JSON.stringify(s.expected)}\n  actual:   ${JSON.stringify(got)}`)
+      if (s.expected !== null && got !== s.expected) out.push(`${where}: output differs\n  expected: ${JSON.stringify(s.expected)}\n  actual:   ${JSON.stringify(got)}`)
     }
   }
+  for (const [file, errors] of Object.entries(Object.keys(tsFiles).length ? typeCheck(tsFiles) : {}))
+    for (const e of errors) out.push(`${file.replace(/\.ts$/, '')}: type error at block line ${e}`)
   return out
 }
