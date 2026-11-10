@@ -64,8 +64,9 @@ export function staticProblems(): string[] {
         continue
       }
       bodies[l] = readBody(lesson.track, lesson.id, l)
-      for (const m of bodies[l].matchAll(/\]\(\/(learn|track)\/([a-z0-9-]+)\)/g)) {
-        const ok = m[1] === 'learn' ? lessonIds.has(m[2]) : trackIds.has(m[2])
+      for (const m of bodies[l].matchAll(/\]\(\/(learn|track|code|predict)\/([a-z0-9-]+)\)/g)) {
+        const ids = { learn: lessonIds, track: trackIds, code: new Set(codingTasks.map((t) => t.id)), predict: new Set(predictTasks.map((t) => t.id)) }
+        const ok = ids[m[1] as keyof typeof ids].has(m[2])
         if (!ok) out.push(`${w}.${l}: broken link /${m[1]}/${m[2]}`)
       }
       if (/^#\s/m.test(bodies[l])) out.push(`${w}.${l}: use ## headings, the page renders the title itself`)
