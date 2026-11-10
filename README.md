@@ -4,7 +4,7 @@
 
 **EN.** A trainer for frontend interview prep: lessons that explain topics right on the page with links to official docs, coding tasks tested in the browser, "what does this code print", performance incident drills and AI mock interviews. UI and content in Russian and English.
 
-План разработки / Roadmap: [docs/PLAN.md](docs/PLAN.md).
+План разработки / Roadmap: [docs/PLAN.md](docs/PLAN.md). Что уже сделано и где это в коде / Status and code map: [docs/PROJECT.md](docs/PROJECT.md).
 
 ## Запуск / Run
 
@@ -26,7 +26,7 @@ pnpm test        # vitest
 pnpm typecheck   # tsc -b (app + server)
 pnpm lint        # oxlint
 pnpm build
-pnpm check:content   # RU/EN parity, sources, links, quizzes, runs every ```js run example
+pnpm check:content   # RU/EN parity, sources, links, quizzes, runs every js/ts run example, tsc for ts examples
 pnpm check:links     # every official source link answers (needs network)
 ```
 
