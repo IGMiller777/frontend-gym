@@ -1,4 +1,5 @@
-import { Flame } from 'lucide-react'
+import { Flame, Zap } from 'lucide-react'
+import { totalXp } from '../content/progress'
 import { Suspense } from 'react'
 import { Link, Outlet } from 'react-router'
 import { useT } from '../i18n'
@@ -10,7 +11,9 @@ export function Layout() {
   useApplySettings()
   const t = useT()
   const days = useProgress((s) => s.days)
+  const results = useProgress((s) => s.results)
   const n = streak(days)
+  const xp = totalXp(results)
   return (
     <div className="min-h-full">
       <a href="#main" className="sr-only rounded-full bg-brand px-4 py-2 font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50">
@@ -27,6 +30,11 @@ export function Layout() {
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-2">
+            {xp > 0 && (
+              <span className="hidden items-center gap-1 rounded-full bg-surface px-3 py-1.5 text-sm font-semibold text-brand-1 sm:flex">
+                <Zap size={15} aria-hidden /> {xp} {t.stats.xp}
+              </span>
+            )}
             {n > 0 && (
               <span className="hidden items-center gap-1 rounded-full bg-surface px-3 py-1.5 text-sm font-semibold text-brand-3 sm:flex" title={t.stats.streak(n)}>
                 <Flame size={16} aria-hidden /> {n}

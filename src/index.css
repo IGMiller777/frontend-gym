@@ -71,6 +71,13 @@
     font-family: var(--font-display);
     letter-spacing: -0.01em;
   }
+  /* No ligatures in code: `===` must look like three characters, not a glyph learners can confuse with `==`. */
+  code,
+  pre,
+  kbd {
+    font-variant-ligatures: none;
+    font-feature-settings: 'liga' 0, 'calt' 0;
+  }
   :focus-visible {
     outline: 3px solid var(--ring);
     outline-offset: 2px;
@@ -105,4 +112,57 @@
     radial-gradient(40rem 20rem at 10% -10%, color-mix(in oklab, var(--brand-1) 22%, transparent), transparent 70%),
     radial-gradient(30rem 18rem at 90% 0%, color-mix(in oklab, var(--brand-2) 18%, transparent), transparent 70%),
     radial-gradient(30rem 16rem at 60% 110%, color-mix(in oklab, var(--brand-3) 14%, transparent), transparent 70%);
+}
+
+/* Code blocks: highlight.js token colors from theme tokens, readable in light and dark. */
+:root {
+  --code-bg: #f3f1fd;
+  --code-ink: #24203f;
+  --code-keyword: #b4237a;
+  --code-string: #1a7f37;
+  --code-number: #b35900;
+  --code-comment: #6b6890;
+  --code-title: #5b3fd6;
+  --code-attr: #0b6aa8;
+}
+.dark {
+  --code-bg: #120f2c;
+  --code-ink: #ece9ff;
+  --code-keyword: #ff7ac6;
+  --code-string: #7ee2a0;
+  --code-number: #ffb86b;
+  --code-comment: #9a95c7;
+  --code-title: #b9a6ff;
+  --code-attr: #79c8ff;
+}
+.code-block {
+  background: var(--code-bg);
+  color: var(--code-ink);
+}
+.code-block .hljs-keyword,
+.code-block .hljs-built_in,
+.code-block .hljs-literal {
+  color: var(--code-keyword);
+}
+.code-block .hljs-string,
+.code-block .hljs-template-tag,
+.code-block .hljs-regexp {
+  color: var(--code-string);
+}
+.code-block .hljs-number {
+  color: var(--code-number);
+}
+.code-block .hljs-comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+.code-block .hljs-title,
+.code-block .hljs-title.function_,
+.code-block .hljs-title.class_ {
+  color: var(--code-title);
+}
+.code-block .hljs-attr,
+.code-block .hljs-property,
+.code-block .hljs-variable.language_ {
+  color: var(--code-attr);
 }
