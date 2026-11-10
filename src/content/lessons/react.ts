@@ -1,10 +1,11 @@
 import type { Source } from '../sources'
+import { reactMoreLessons } from './react-more'
 import type { Lesson, Module } from './types'
 
 const docs = (title: string, path: string): Source => ({ title: `react.dev: ${title}`, url: `https://react.dev/${path}`, kind: 'official' })
 const verified = { date: '2026-11', version: 'React 19.3, React Compiler 1.0' }
 
-export const reactLessons: Lesson[] = [
+const baseLessons: Lesson[] = [
   {
     id: 'react-rendering',
     track: 'react',
@@ -214,6 +215,15 @@ export const reactLessons: Lesson[] = [
   },
 ]
 
+/** Path order: basics, state and hooks, composition, performance and internals, data, server, quality. */
+const order = [
+  'react-jsx-components', 'react-rendering', 'react-state', 'react-hooks', 'react-effects', 'react-forms', 'react-patterns',
+  'react-performance', 'react-internals', 'react-router', 'react-data', 'react-actions', 'react-server', 'react-debugging', 'react-a11y-testing',
+]
+const all = new Map([...baseLessons, ...reactMoreLessons].map((l) => [l.id, l]))
+export const reactLessons: Lesson[] = order.map((id) => all.get(id)!)
+if (reactLessons.length !== all.size || reactLessons.some((l) => !l)) throw new Error('react: lesson order is out of sync with lesson list')
+
 export const reactModule: Module = {
   track: 'react',
   lessons: reactLessons.map((l) => l.id),
@@ -229,6 +239,12 @@ export const reactModule: Module = {
         { q: 'Зачем `useSyncExternalStore`?', options: ['Синхронизировать состояние двух компонентов', 'Читать внешнее хранилище без разрывов', 'Сохранять состояние в `localStorage`', 'Ускорить рендер списка'], correct: 1, why: 'Хук делает чтение изменяемого внешнего источника согласованным при конкурентном рендере.' },
         { q: 'Что делает React после успешного `<form action={fn}>`?', options: ['Перезагружает страницу', 'Сбрасывает неуправляемые поля формы', 'Очищает всё состояние компонента', 'Отправляет форму второй раз'], correct: 1, why: 'После успешного Action React сбрасывает неуправляемые поля; сохранить значения можно через `defaultValue` из состояния.' },
         { q: 'Чем Server Components отличаются от SSR?', options: ['Ничем, это одно и то же явление', 'Их кода нет в клиентском бандле', 'Они работают без сервера', 'Они рендерятся только в браузере'], correct: 1, why: 'SSR превращает в HTML и клиентские компоненты, а серверные компоненты выполняются только на сервере и не входят в бандл.' },
+        { q: 'Что отрисует `{0 && <b>x</b>}`?', options: ['Ничего', 'Символ `0`', 'Элемент `<b>x</b>`', 'Бросит ошибку'], correct: 1, why: 'Ложные значения, кроме чисел, не рисуются; `0` и `NaN` выводятся текстом.' },
+        { q: 'Почему при `if (x) useState()` React бросает ошибку на следующем рендере?', options: ['Условия в хуках медленные', 'Сбился порядок ячеек хуков', 'useState требует ключ', 'Хуки работают только в классах'], correct: 1, why: 'Ячейки хуков сопоставляются по порядку вызова; число вызовов изменилось.' },
+        { q: 'В каком порядке выполнятся `useEffect` родителя и ребёнка после монтирования?', options: ['Сначала родителя', 'Сначала ребёнка', 'В порядке объявления', 'Одновременно'], correct: 1, why: 'Фиксация и эффекты идут снизу вверх.' },
+        { q: 'Куда всплывёт клик из портала?', options: ['Только к `document.body`', 'К React-родителю портала', 'Никуда', 'К `window` минуя React'], correct: 1, why: 'Портал меняет место в DOM, но не в дереве React.' },
+        { q: 'Как в React Router 8 не пустить гостя на страницу до рендера?', options: ['useEffect с navigate', '`throw redirect()` в loader', 'Скрыть страницу CSS', 'Проверить в onClick'], correct: 1, why: 'Загрузчик выполняется до рендера, редирект не даёт странице мелькнуть; для групп маршрутов middleware.' },
+        { q: 'Какой запрос Testing Library первым по приоритету?', options: ['`getByTestId` по атрибуту', '`getByText` по тексту', '`getByRole` с именем', '`querySelector` по узлу'], correct: 2, why: 'Поиск по роли и доступному имени повторяет то, как элемент находит пользователь и скринридер.' },
       ],
       en: [
         { q: 'A component is declared inside another component. What happens to its state on every parent render?', options: ['It is kept, React caches the function', 'It resets: it is a new type each time', 'It is kept if it has a `key`', 'It resets only in StrictMode'], correct: 1, why: 'A function created during render is a new `type`, and React unmounts its subtree.' },
@@ -239,6 +255,12 @@ export const reactModule: Module = {
         { q: 'What is `useSyncExternalStore` for?', options: ['Syncing state between two components', 'Reading an outside store without tearing', 'Saving state to `localStorage`', 'Rendering a long list faster'], correct: 1, why: 'The hook keeps reads of a mutable external source consistent during concurrent rendering.' },
         { q: 'What does React do after a successful `<form action={fn}>`?', options: ['Reloads the whole page', 'Resets uncontrolled form fields', 'Clears all of the component\'s state', 'Submits the form a second time'], correct: 1, why: 'After a successful Action React resets uncontrolled fields; values can be kept through `defaultValue` from state.' },
         { q: 'How do Server Components differ from SSR?', options: ['They do not, it is the same thing', 'Their code is not in the client bundle', 'They work without a server', 'They render only in the browser'], correct: 1, why: 'SSR turns client components into HTML too, while server components run only on the server and are not bundled.' },
+        { q: 'What does `{0 && <b>x</b>}` render?', options: ['Nothing', 'The character `0`', 'The element `<b>x</b>`', 'It throws'], correct: 1, why: 'Falsy values other than numbers render nothing; `0` and `NaN` render as text.' },
+        { q: 'Why does React throw on the next render after `if (x) useState()`?', options: ['Conditions in hooks are slow', 'The hook slot order broke', 'useState needs a key', 'Hooks only work in classes'], correct: 1, why: 'Hook slots are matched by call order; the number of calls changed.' },
+        { q: 'In which order do the parent and child `useEffect` run after mounting?', options: ['The parent first', 'The child first', 'In declaration order', 'At the same time'], correct: 1, why: 'The commit and effects go bottom-up.' },
+        { q: 'Where does a click from a portal bubble?', options: ['Only to `document.body`', 'To the portal React parent', 'Nowhere', 'To `window`, skipping React'], correct: 1, why: 'A portal moves the DOM, not the React tree.' },
+        { q: 'How do you keep a guest off a page before render in React Router 8?', options: ['A useEffect calling navigate', '`throw redirect()` in a loader', 'Hide the whole page with CSS', 'A check inside onClick'], correct: 1, why: 'The loader runs before render, so the redirect keeps the page from flashing; middleware for route groups.' },
+        { q: 'Which Testing Library query comes first by priority?', options: ['`getByTestId` with an id', '`getByText` with a text', '`getByRole` with a name', '`querySelector` on a node'], correct: 2, why: 'Role and accessible name find an element the way a user and a screen reader do.' },
       ],
     },
   },

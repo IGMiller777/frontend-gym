@@ -4,6 +4,19 @@ How `useState` works: why state is a snapshot, how React groups updates (batchin
 
 ## State is a snapshot
 
+```mermaid
+sequenceDiagram
+  participant H as Click handler
+  participant R as React
+  participant C as Component
+  Note over C: render 1: count = 0
+  H->>R: setCount(count + 1) → set 1
+  H->>R: setCount(count + 1) → set 1 again
+  H->>R: setCount(c => c + 1) → take 1, return 2
+  Note over H: inside the handler count is still 0
+  R->>C: render 2: count = 2
+```
+
 On every render a component gets **the state value as of that render**. `setCount` does not change the `count` variable; it queues an update and requests a new render:
 
 ```jsx dom
@@ -118,6 +131,19 @@ render Rome
 After the mutation there was no render: same reference. A new object via spread produced a render. For arrays: `[...list, item]`, `list.filter(...)`, `list.map(...)`, `toSorted()` instead of in-place `push`, `splice` and `sort`. For deeply nested data, flatten the structure or use Immer (`useImmer`), which lets you write "mutations" on a draft.
 
 ## Where data belongs
+
+```mermaid
+flowchart TD
+  Q1{"Can it be computed<br/>from props or other state?"} -->|yes| D["Do not store: compute in render"]
+  Q1 -->|no| Q2{"Is it server data?"}
+  Q2 -->|yes| S["TanStack Query, a route loader"]
+  Q2 -->|no| Q3{"Must it survive a reload<br/>and be shareable by link?"}
+  Q3 -->|yes| URL["URL: path and search params"]
+  Q3 -->|no| Q4{"Needed by one component?"}
+  Q4 -->|yes| L["useState in it"]
+  Q4 -->|"by a few nearby"| UP["Lift to the common parent"]
+  Q4 -->|"by many across the tree"| G["Context (rare changes)<br/>or a store (frequent)"]
+```
 
 - **Do not store derived data.** If a value is computed from props or state, compute it during render: `const fullName = first + ' ' + last`. A `useState` + `useEffect(() => setFullName(...))` pair gives an extra render with a stale value.
 - **An expensive calculation** goes into `useMemo` (or is left to React Compiler, see the performance lesson).

@@ -4,6 +4,26 @@ React 19 добавил встроенную модель асинхронных
 
 ## Actions
 
+```mermaid
+sequenceDiagram
+  participant U as Пользователь
+  participant F as form action
+  participant O as useOptimistic
+  participant S as Сервер
+  U->>F: отправка формы
+  F->>O: сразу показать ожидаемый результат
+  Note over F: isPending = true, кнопка заблокирована
+  F->>S: await saveTodo(formData)
+  alt успех
+    S-->>F: сохранено
+    F->>F: обновить настоящее состояние
+  else ошибка
+    S-->>F: ошибка
+    O->>O: оптимистичное значение откатывается
+  end
+  Note over F: isPending = false
+```
+
 **Action** это функция, которая выполняется внутри перехода, в том числе асинхронная (React 19, в 18 переходы были только синхронными). Пока она работает, React сам ведёт состояние ожидания:
 
 ```jsx

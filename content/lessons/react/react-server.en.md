@@ -4,6 +4,19 @@ How React renders on the server: which APIs are current and which were removed, 
 
 ## Why render on the server
 
+```mermaid
+sequenceDiagram
+  participant B as Browser
+  participant S as Server
+  B->>S: GET /products
+  S->>S: render React to HTML (data already loaded)
+  S-->>B: HTML (streamed as Suspense boundaries resolve)
+  Note over B: the user sees content (FCP, LCP)
+  B->>S: load the JS bundle
+  B->>B: hydrateRoot: React attaches handlers to the existing DOM
+  Note over B: the page is interactive
+```
+
 With pure client-side rendering (CSR) the browser gets an empty `<div id="root">`, downloads and runs JavaScript, and only then does the user see content. Server-side rendering (SSR) sends ready HTML: content shows up sooner, and search engines and link previews can see it. The cost: a server for every request (or a build step ahead of time), and the page is not interactive until JavaScript loads and hydration finishes. Static site generation (SSG) does the same at build time.
 
 ## React DOM server APIs
@@ -122,6 +135,14 @@ console.log(new Set(serverIds).size, 'unique ids,', JSON.stringify(serverIds) ==
 **Selective hydration** (React 18+): each Suspense boundary hydrates independently. While the code for one part loads, the others are already interactive, and if the user clicks an area that is not hydrated yet, React hydrates it first.
 
 ## Server Components
+
+```mermaid
+flowchart TB
+  P["Page (Server Component)<br/>await db.products()"] --> L["ProductList (Server)<br/>code never ships to the browser"]
+  P --> F["Filters ('use client')<br/>useState, onChange"]
+  L --> C["AddToCart ('use client')<br/>receives data as props"]
+  C -.->|"calls a server function<br/>'use server'"| A["addToCart(id) on the server"]
+```
 
 A **Server Component** runs only on the server (on request or at build time) and sends the client the render result, not the code. It is not the same as SSR: SSR turns client components into HTML too, while Server Components never reach the client bundle at all.
 

@@ -4,6 +4,17 @@ Why a component re-renders, what `memo`, `useMemo` and `useCallback` actually do
 
 ## When a component renders
 
+```mermaid
+flowchart TD
+  A["Its own state changed"] --> R["The component renders"]
+  B["A context it reads changed"] --> R
+  P["Its parent rendered"] --> M{"Wrapped in memo<br/>(or memoized by the compiler)?"}
+  M -->|no| R
+  M -->|yes| Q{"Props equal by Object.is?"}
+  Q -->|yes| S["Skip the render"]
+  Q -->|no| R
+```
+
 A component renders when:
 
 1. its state changed;

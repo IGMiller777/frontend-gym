@@ -37,6 +37,7 @@ export const officialDomains = [
   'playwright.dev',
   'tailwindcss.com',
   'nodejs.org',
+  'reactrouter.com',
   'v8.dev',
   'cheatsheetseries.owasp.org',
   'owasp.org',
