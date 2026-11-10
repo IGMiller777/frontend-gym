@@ -53,7 +53,7 @@ console.log(['1', '2', '3'].map(Number))
 Which function to use for a string to number conversion:
 
 ```mermaid
-flowchart LR
+flowchart TD
   S(["Must the whole string<br/>be a number?"]) -->|yes| N["Number(s)<br/>'12px' → NaN<br/>'' → 0"]
   S -->|"no, a number<br/>at the start"| P(["An integer?"])
   P -->|yes| PI["parseInt(s, 10)<br/>'12px' → 12"]
@@ -88,17 +88,14 @@ false true
 One string at three levels: UTF-16 code units (`length`), code points (spread, `for...of`) and graphemes, the visible characters (`Intl.Segmenter`):
 
 ```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 420
+---
 flowchart TB
-  subgraph G["Graphemes (Intl.Segmenter): 4 visible characters"]
-    g1["👍🏽"] ~~~ g2["space"] ~~~ g3["o"] ~~~ g4["k"]
-  end
-  subgraph P["Code points (spread, for...of): 5"]
-    p1["U+1F44D 👍"] ~~~ p2["U+1F3FD skin tone"] ~~~ p3["U+0020"] ~~~ p4["o"] ~~~ p5["k"]
-  end
-  subgraph U["UTF-16 code units: length = 7"]
-    u1["D83D"] ~~~ u2["DC4D"] ~~~ u3["D83C"] ~~~ u4["DFFD"] ~~~ u5["0020"] ~~~ u6["006F"] ~~~ u7["006B"]
-  end
-  G --> P --> U
+  G["Graphemes, Intl.Segmenter: 4<br/>👍🏽 · space · o · k"] --> P["Code points, spread and for...of: 5<br/>U+1F44D · U+1F3FD (skin tone) · U+0020 · o · k"]
+  P --> U["UTF-16 code units, length: 7<br/>D83D DC4D · D83C DFFD · 0020 · 006F · 006B"]
 ```
 
 - `length` counts code units. Spread and `for...of` walk code points, but a "visible character" (a grapheme) can consist of several points: a family emoji, flags, a letter with a diacritic. To count visible characters or truncate text, use `Intl.Segmenter`.
@@ -139,7 +136,7 @@ console.log(start.getDate())
 How a date goes through an application without time zone bugs:
 
 ```mermaid
-flowchart LR
+flowchart TD
   I["User input<br/>in their zone"] -->|"toISOString()"| N["Network: ISO 8601<br/>2026-11-10T09:00:00Z"]
   N --> DB[("Stored in UTC")]
   DB --> N2["API response: ISO with Z"]

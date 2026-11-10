@@ -5,7 +5,7 @@ A cache keeps the result of an expensive operation so you do not repeat it. Memo
 ## Where caches live
 
 ```mermaid
-flowchart LR
+flowchart TD
   C["Component"] --> M["In-memory cache<br/>(Map, memoization,<br/>TanStack Query)"]
   M -->|"miss"| N["fetch"]
   N --> SW["Service Worker<br/>+ Cache API"]
@@ -75,14 +75,17 @@ When the cache is full, something has to go.
 A `Map` remembers insertion order, so LRU takes a few lines: on read, delete the entry and insert it again (it becomes the "freshest" at the end), and on overflow delete the first one.
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph S1["after set a, b, c (capacity 3)"]
+    direction LR
     a1["a"] --> b1["b"] --> c1["c"]
   end
   subgraph S2["get a: a to the end"]
+    direction LR
     b2["b"] --> c2["c"] --> a2["a"]
   end
   subgraph S3["set d: evict the first (b)"]
+    direction LR
     c3["c"] --> a3["a"] --> d3["d"]
   end
   S1 --> S2 --> S3

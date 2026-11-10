@@ -29,7 +29,7 @@ The dashed objects are unreachable: only they reference each other. The **mark-a
 ## How V8 collects garbage
 
 ```mermaid
-flowchart LR
+flowchart TD
   N["new Object()"] --> Y["Young generation<br/>(small, frequent fast collection)"]
   Y -->|"survived 2 collections"| O["Old generation<br/>(large, rare full collection)"]
   Y -->|"died young<br/>(most objects)"| F1["freed"]

@@ -5,7 +5,7 @@ What happens to a `.js` file from download to execution: parsing into a tree, by
 ## The path of code in V8
 
 ```mermaid
-flowchart LR
+flowchart TD
   S["Source text"] --> P["Parser<br/>(lazy: function bodies<br/>are parsed on first call)"]
   P --> A["AST"]
   A --> I["Ignition<br/>bytecode + interpreter"]

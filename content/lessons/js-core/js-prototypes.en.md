@@ -7,7 +7,7 @@ In the [this lesson](/learn/js-this) methods read data from the object they were
 The chain for `const rex = new Dog()`, where `class Dog extends Animal`:
 
 ```mermaid
-flowchart LR
+flowchart TD
   R["rex<br/>{ name }"] -->|"[[Prototype]]"| DP["Dog.prototype<br/>{ bark }"]
   DP -->|"[[Prototype]]"| AP["Animal.prototype<br/>{ eat }"]
   AP -->|"[[Prototype]]"| OP["Object.prototype<br/>{ toString, hasOwnProperty }"]

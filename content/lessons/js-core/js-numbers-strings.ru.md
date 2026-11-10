@@ -53,7 +53,7 @@ console.log(['1', '2', '3'].map(Number))
 Строка в число, какую функцию выбрать:
 
 ```mermaid
-flowchart LR
+flowchart TD
   S(["Вся строка<br/>должна быть числом?"]) -->|да| N["Number(s)<br/>'12px' → NaN<br/>'' → 0"]
   S -->|"нет, число<br/>в начале"| P(["Целое?"])
   P -->|да| PI["parseInt(s, 10)<br/>'12px' → 12"]
@@ -88,17 +88,14 @@ false true
 Одна строка на трёх уровнях: кодовые единицы UTF-16 (`length`), кодовые точки (spread, `for...of`) и графемы, то есть видимые символы (`Intl.Segmenter`):
 
 ```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 420
+---
 flowchart TB
-  subgraph G["Графемы (Intl.Segmenter): 4 видимых символа"]
-    g1["👍🏽"] ~~~ g2["пробел"] ~~~ g3["o"] ~~~ g4["k"]
-  end
-  subgraph P["Кодовые точки (spread, for...of): 5"]
-    p1["U+1F44D 👍"] ~~~ p2["U+1F3FD тон кожи"] ~~~ p3["U+0020"] ~~~ p4["o"] ~~~ p5["k"]
-  end
-  subgraph U["Кодовые единицы UTF-16: length = 7"]
-    u1["D83D"] ~~~ u2["DC4D"] ~~~ u3["D83C"] ~~~ u4["DFFD"] ~~~ u5["0020"] ~~~ u6["006F"] ~~~ u7["006B"]
-  end
-  G --> P --> U
+  G["Графемы, Intl.Segmenter: 4<br/>👍🏽 · пробел · o · k"] --> P["Кодовые точки, spread и for...of: 5<br/>U+1F44D · U+1F3FD (тон кожи) · U+0020 · o · k"]
+  P --> U["Кодовые единицы UTF-16, length: 7<br/>D83D DC4D · D83C DFFD · 0020 · 006F · 006B"]
 ```
 
 - `length` считает кодовые единицы. Spread и `for...of` идут по кодовым точкам, но «видимый символ» (графема) может состоять из нескольких точек: эмодзи семьи, флаги, буква с диакритикой. Для подсчёта видимых символов и обрезки текста нужен `Intl.Segmenter`.
@@ -134,7 +131,7 @@ console.log(start.getDate())
 Как дата проходит через приложение без ошибок часовых поясов:
 
 ```mermaid
-flowchart LR
+flowchart TD
   I["Ввод пользователя<br/>в его поясе"] -->|"toISOString()"| N["Сеть: ISO 8601<br/>2026-11-10T09:00:00Z"]
   N --> DB[("Хранение в UTC")]
   DB --> N2["Ответ API: ISO с Z"]

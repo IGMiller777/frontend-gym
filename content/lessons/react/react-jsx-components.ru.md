@@ -176,12 +176,15 @@ willUnmount
 ```mermaid
 flowchart LR
   subgraph M["Монтирование"]
+    direction TB
     C1["constructor"] --> D1["getDerivedStateFromProps"] --> R1["render"] --> CDM["componentDidMount"]
   end
   subgraph U["Обновление"]
+    direction TB
     D2["getDerivedStateFromProps"] --> S["shouldComponentUpdate"] --> R2["render"] --> GS["getSnapshotBeforeUpdate"] --> CDU["componentDidUpdate"]
   end
   subgraph X["Размонтирование"]
+    direction TB
     CWU["componentWillUnmount"]
   end
   M --> U --> X

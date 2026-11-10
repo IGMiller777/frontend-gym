@@ -5,7 +5,7 @@
 ## Где живут кэши
 
 ```mermaid
-flowchart LR
+flowchart TD
   C["Компонент"] --> M["Кэш в памяти<br/>(Map, мемоизация,<br/>TanStack Query)"]
   M -->|"промах"| N["fetch"]
   N --> SW["Service Worker<br/>+ Cache API"]
@@ -75,14 +75,17 @@ console.log(fib(90))
 `Map` помнит порядок вставки, поэтому LRU пишется в несколько строк: при чтении запись удаляют и вставляют заново (она становится «самой свежей» в конце), а при переполнении удаляют первую.
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph S1["после set a, b, c (ёмкость 3)"]
+    direction LR
     a1["a"] --> b1["b"] --> c1["c"]
   end
   subgraph S2["get a: a в конец"]
+    direction LR
     b2["b"] --> c2["c"] --> a2["a"]
   end
   subgraph S3["set d: выбросить первую (b)"]
+    direction LR
     c3["c"] --> a3["a"] --> d3["d"]
   end
   S1 --> S2 --> S3
