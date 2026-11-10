@@ -1,59 +1,23 @@
 ## What this lesson covers
 
-What a Vue application is built from: Vue Router 5 (routes, guards, lazy pages, file-based routing now in the core), server rendering and hydration, Nuxt 4 as the framework on top of Vue, and testing with Vitest and Vue Test Utils. The examples run on Vue 3.5 and Vue Router 5.4.
-
-## Vue Router
-
-`createRouter({ history, routes })` and `app.use(router)`. History: `createWebHistory()` for normal URLs (the server needs a fallback to `index.html`), `createWebHashHistory()` for static hosting without configuration, `createMemoryHistory()` for SSR and tests.
-
-```js dom
-import { createApp, nextTick } from 'vue'
-import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
-
-const session = { user: null }
-
-const router = createRouter({
-  history: createMemoryHistory(),
-  routes: [
-    { path: '/login', component: { template: `<p>Login page</p>` } },
-    {
-      path: '/orders/:id',
-      component: { props: ['id'], template: `<p>Order {{ id }}</p>` },
-      props: true, // route params become component props
-      meta: { requiresAuth: true },
-    },
-  ],
-})
-
-router.beforeEach((to) => {
-  if (to.meta.requiresAuth && !session.user) return { path: '/login', query: { redirect: to.fullPath } }
-})
-
-const el = document.createElement('div')
-createApp({ components: { RouterView }, template: `<RouterView />` }).use(router).mount(el)
-
-await router.push('/orders/42')
-await nextTick()
-console.log(router.currentRoute.value.fullPath, '→', el.textContent)
-
-session.user = 'ann'
-await router.push('/orders/42')
-await nextTick()
-console.log(router.currentRoute.value.fullPath, '→', el.textContent)
-```
-
-```output
-/login?redirect=/orders/42 → Login page
-/orders/42 → Order 42
-```
-
-- A guard returns a route to redirect to, `false` to cancel, or nothing to continue; `next()` is not needed in new code.
-- `props: true` passes path parameters as props, so the component does not depend on `useRoute()`.
-- Lazy pages: `component: () => import('./OrderPage.vue')`, each in its own chunk.
-- In a component: `useRoute()` (the current route, reactive), `useRouter()` (navigation), `onBeforeRouteLeave` for unsaved forms.
-- **Vue Router 5** (January 2026) moved file-based routing from `unplugin-vue-router` into the core: routes are built from files in `src/pages` with typed names and params, and the plugin is imported from `vue-router/vite`. Ordinary route configuration, as above, has no breaking changes.
+How a Vue application renders on the server and comes alive in the browser: `createSSRApp`, `renderToString` and hydration, mismatches and lazy hydration from 3.5, state under SSR, Nuxt 4 with a rendering mode per route, and component testing with Vitest. The examples run on Vue 3.5. The router has its own lesson.
 
 ## SSR and hydration
+
+```mermaid
+sequenceDiagram
+  participant B as Browser
+  participant S as Server (Node.js)
+  B->>S: GET /products/42
+  S->>S: createSSRApp, setup, onServerPrefetch
+  S->>S: renderToString: HTML without handlers
+  S-->>B: HTML + serialized state
+  B->>B: shows the markup (early FCP and LCP)
+  B->>S: loads the JS bundle
+  B->>B: createSSRApp(App).mount(): hydration
+  Note over B: Vue walks the existing DOM,<br/>attaches handlers, checks the markup
+  B->>B: the page is interactive
+```
 
 `createSSRApp` and `renderToString` from `vue/server-renderer` render the app to HTML on the server; on the client `createSSRApp(App).mount('#app')` **hydrates** the existing markup instead of creating new nodes.
 
@@ -89,19 +53,67 @@ console.log(html.replace(/<!--[[\]]-->/g, ''))
 
 ## Nuxt
 
-In practice SSR is done with **Nuxt** (version 4): file-based routes in `app/pages`, server APIs in `server/`, auto-imports, data loading with `useFetch` and `useAsyncData` that passes results from the server to the client, and a rendering mode per route (`routeRules`: SSR, static generation, client-only, caching). For sites without a server there is Nuxt SSG or VitePress (documentation).
+In practice SSR is done with **Nuxt** (version 4), a framework on top of Vue, Vue Router and Vite: file-based routes in `app/pages`, server handlers in `server/` (the Nitro engine), auto-imported components and composables, data loading with `useFetch` and `useAsyncData`, which run on the server and pass the result to the client inside the HTML so the client does not request the same data again.
+
+Nuxt's main strength is that the rendering mode is chosen **per route** through `routeRules`:
+
+```mermaid
+flowchart LR
+  R(["Route"]) --> SSR["ssr: true (default)<br/>HTML per request: personal pages"]
+  R --> SSG["prerender: true<br/>HTML at build time: landing pages, docs"]
+  R --> SWR["swr / isr: cached on the server or CDN<br/>with background refresh: catalog, blog"]
+  R --> SPA["ssr: false<br/>client only: dashboards, admin"]
+```
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  routeRules: {
+    '/': { prerender: true },
+    '/products/**': { swr: 3600 },
+    '/admin/**': { ssr: false },
+  },
+})
+```
+
+For static sites and docs without a server, use Nuxt SSG or VitePress.
 
 ## Tests
 
-- **Vitest** (the same config as Vite) with a `jsdom` or `happy-dom` environment.
-- **Vue Test Utils**: `mount(Component, { props, global: { plugins: [router, pinia] } })`, then `wrapper.find('button').trigger('click')` and `await` for the DOM update; **Testing Library for Vue** checks what the user sees (roles, labels).
-- Pinia in tests: `createTestingPinia()` replaces actions with spies; `setActivePinia(createPinia())` for testing a store itself.
-- E2E: Playwright or Cypress.
+| Level | Tool | What it checks |
+|---|---|---|
+| Logic, composables, stores | Vitest | Functions and reactive state without a DOM |
+| Components | Vitest + jsdom/happy-dom + Vue Test Utils or Testing Library | Rendering, events, `emit`, slots |
+| Browser scenarios | Playwright (or Cypress) | A real browser, routes, network |
+
+```ts
+import { mount, flushPromises } from '@vue/test-utils'
+import { createTestingPinia } from '@pinia/testing'
+import { expect, it } from 'vitest'
+import Counter from './Counter.vue'
+
+it('increments and emits change', async () => {
+  const wrapper = mount(Counter, {
+    props: { start: 1 },
+    global: { plugins: [createTestingPinia()] }, // store actions become spies
+  })
+  await wrapper.get('button').trigger('click') // await: the DOM updates after nextTick
+  expect(wrapper.text()).toContain('2')
+  expect(wrapper.emitted('change')).toEqual([[2]])
+  await flushPromises() // settle pending fetches
+})
+```
+
+- `trigger` and `setValue` return a promise that waits for `nextTick`: without `await` the assertion sees the old DOM.
+- Testing Library for Vue (`render`, `screen.getByRole`, `userEvent`) finds elements the way a user sees them and does not depend on the component internals; Vue Test Utils gives more access to the instance (`emitted`, `vm`).
+- Test a composable with lifecycle hooks inside a small wrapper component; without hooks, calling it inside an `effectScope` is enough.
+- Pinia: `createTestingPinia()` turns actions into spies for component tests, `setActivePinia(createPinia())` for tests of the store itself.
 
 ## Key points
 
-- `createRouter` with a history, guards return a route or `false`, `props: true` for params, lazy pages through `import()`.
-- Vue Router 5 moved file-based routing into the core with no breaking changes for ordinary configuration.
-- `createSSRApp` and `renderToString` on the server, hydration on the client; `useId`, `data-allow-mismatch`, lazy hydration from 3.5.
-- Global module state is dangerous under SSR; Pinia isolates requests.
-- Nuxt 4 for SSR and SSG; tests with Vitest and Vue Test Utils or Testing Library.
+- `createSSRApp` and `renderToString` on the server, hydration on the client: Vue reuses the existing DOM and attaches handlers.
+- The first client render must match the server markup; `useId`, `data-allow-mismatch`, browser code in `onMounted`.
+- Lazy hydration (3.5) postpones bringing invisible or unimportant parts to life.
+- Global module state under SSR is shared by all requests; Pinia isolates requests.
+- Nuxt 4: SSR, SSG, SPA and caching per route through `routeRules`, data through `useFetch` and `useAsyncData`.
+- Tests: Vitest, Vue Test Utils or Testing Library, `createTestingPinia`, Playwright for E2E.

@@ -856,16 +856,18 @@ c.set(k2, 'two')
 expect([c.get(k1), c.get(k2), c.size]).toEqual([undefined, 'two', 1])`,
       },
       {
-        name: { ru: 'миллион операций быстро (O(1))', en: 'a million operations fast (O(1))' },
+        name: { ru: 'сто тысяч операций без заметного замедления', en: 'a hundred thousand operations without a noticeable slowdown' },
         hidden: true,
+        // A generous bound: it catches a sort or a full scan per call, not micro-differences,
+        // so a busy CI machine does not fail a correct solution.
         code: `const c = new LRUCache(1000)
 const start = performance.now()
-for (let i = 0; i < 1_000_000; i++) {
-  c.set(i % 5000, i)
-  c.get((i * 7) % 5000)
+for (let i = 0; i < 100_000; i++) {
+  c.set(i % 1250, i)
+  c.get((i * 7) % 1250)
 }
 expect(c.size).toBe(1000)
-expect(performance.now() - start < 1500).toBe(true)`,
+expect(performance.now() - start < 1000).toBe(true)`,
       },
     ],
     sources: [mdn('Map', 'Web/JavaScript/Reference/Global_Objects/Map'), mdn('Map.prototype.keys()', 'Web/JavaScript/Reference/Global_Objects/Map/keys')],

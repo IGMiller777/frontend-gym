@@ -1,59 +1,23 @@
 ## О чём урок
 
-Из чего собирается приложение на Vue: Vue Router 5 (маршруты, guards, ленивые страницы, файловый роутинг теперь в ядре), серверный рендер и гидратация, Nuxt 4 как фреймворк поверх Vue и тестирование на Vitest с Vue Test Utils. Примеры выполняются на Vue 3.5 и Vue Router 5.4.
-
-## Vue Router
-
-`createRouter({ history, routes })` и `app.use(router)`. История: `createWebHistory()` для обычных адресов (серверу нужен fallback на `index.html`), `createWebHashHistory()` для статического хостинга без настройки, `createMemoryHistory()` для SSR и тестов.
-
-```js dom
-import { createApp, nextTick } from 'vue'
-import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
-
-const session = { user: null }
-
-const router = createRouter({
-  history: createMemoryHistory(),
-  routes: [
-    { path: '/login', component: { template: `<p>Login page</p>` } },
-    {
-      path: '/orders/:id',
-      component: { props: ['id'], template: `<p>Order {{ id }}</p>` },
-      props: true, // route params become component props
-      meta: { requiresAuth: true },
-    },
-  ],
-})
-
-router.beforeEach((to) => {
-  if (to.meta.requiresAuth && !session.user) return { path: '/login', query: { redirect: to.fullPath } }
-})
-
-const el = document.createElement('div')
-createApp({ components: { RouterView }, template: `<RouterView />` }).use(router).mount(el)
-
-await router.push('/orders/42')
-await nextTick()
-console.log(router.currentRoute.value.fullPath, '→', el.textContent)
-
-session.user = 'ann'
-await router.push('/orders/42')
-await nextTick()
-console.log(router.currentRoute.value.fullPath, '→', el.textContent)
-```
-
-```output
-/login?redirect=/orders/42 → Login page
-/orders/42 → Order 42
-```
-
-- Guard возвращает маршрут для перенаправления, `false` для отмены или ничего для продолжения; `next()` в новом коде не нужен.
-- `props: true` передаёт параметры пути в пропсы, и компонент не зависит от `useRoute()`.
-- Ленивые страницы: `component: () => import('./OrderPage.vue')`, каждая уходит в свой чанк.
-- В компоненте: `useRoute()` (текущий маршрут, реактивный), `useRouter()` (навигация), `onBeforeRouteLeave` для несохранённых форм.
-- **Vue Router 5** (январь 2026) включил в ядро файловый роутинг из `unplugin-vue-router`: маршруты строятся из файлов в `src/pages` с типизированными именами и параметрами, плагин подключается из `vue-router/vite`. Для обычной конфигурации маршрутов, как выше, ломающих изменений нет.
+Как приложение на Vue рендерится на сервере и оживает в браузере: `createSSRApp`, `renderToString` и гидратация, несовпадения и ленивая гидратация из 3.5, состояние при SSR, Nuxt 4 с режимами рендера для каждого маршрута и тестирование компонентов на Vitest. Примеры выполняются на Vue 3.5. Роутер разобран в отдельном уроке.
 
 ## SSR и гидратация
+
+```mermaid
+sequenceDiagram
+  participant B as Браузер
+  participant S as Сервер (Node.js)
+  B->>S: GET /products/42
+  S->>S: createSSRApp, setup, onServerPrefetch
+  S->>S: renderToString: HTML без обработчиков
+  S-->>B: HTML + сериализованное состояние
+  B->>B: показ разметки (ранние FCP и LCP)
+  B->>S: загрузка JS-бандла
+  B->>B: createSSRApp(App).mount(): гидратация
+  Note over B: Vue проходит по готовому DOM,<br/>навешивает обработчики, сверяет разметку
+  B->>B: страница интерактивна
+```
 
 `createSSRApp` и `renderToString` из `vue/server-renderer` рендерят приложение в HTML на сервере; на клиенте `createSSRApp(App).mount('#app')` **гидратирует** готовую разметку вместо создания новой.
 
@@ -89,19 +53,67 @@ console.log(html.replace(/<!--[[\]]-->/g, ''))
 
 ## Nuxt
 
-На практике SSR делают через **Nuxt** (версия 4): файловые маршруты в `app/pages`, серверные API в `server/`, автоимпорты, загрузка данных `useFetch` и `useAsyncData` с передачей результата с сервера на клиент, режимы рендера для каждого маршрута (`routeRules`: SSR, статическая генерация, только клиент, кэширование). Для сайтов без сервера подходят SSG Nuxt или VitePress (документация).
+На практике SSR делают через **Nuxt** (версия 4), фреймворк поверх Vue, Vue Router и Vite: файловые маршруты в `app/pages`, серверные обработчики в `server/` (движок Nitro), автоимпорты компонентов и composables, загрузка данных `useFetch` и `useAsyncData`, которые выполняются на сервере и передают результат клиенту в HTML, чтобы клиент не запрашивал те же данные повторно.
+
+Главная сила Nuxt в том, что режим рендера выбирается **для каждого маршрута** через `routeRules`:
+
+```mermaid
+flowchart LR
+  R(["Маршрут"]) --> SSR["ssr: true (по умолчанию)<br/>HTML на каждый запрос: персональные страницы"]
+  R --> SSG["prerender: true<br/>HTML при сборке: лендинги, документация"]
+  R --> SWR["swr / isr: кэш на сервере или CDN<br/>с фоновым обновлением: каталог, блог"]
+  R --> SPA["ssr: false<br/>только клиент: личный кабинет, админка"]
+```
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  routeRules: {
+    '/': { prerender: true },
+    '/products/**': { swr: 3600 },
+    '/admin/**': { ssr: false },
+  },
+})
+```
+
+Для статических сайтов и документации без сервера используют SSG Nuxt или VitePress.
 
 ## Тесты
 
-- **Vitest** (тот же конфиг, что у Vite) с окружением `jsdom` или `happy-dom`.
-- **Vue Test Utils**: `mount(Component, { props, global: { plugins: [router, pinia] } })`, затем `wrapper.find('button').trigger('click')` и `await` для обновления DOM; **Testing Library для Vue** проверяет то, что видит пользователь (роли, подписи).
-- Pinia в тестах: `createTestingPinia()` подменяет действия шпионами; `setActivePinia(createPinia())` для тестов самого стора.
-- E2E: Playwright или Cypress.
+| Уровень | Инструмент | Что проверяет |
+|---|---|---|
+| Логика, composables, сторы | Vitest | Функции и реактивное состояние без DOM |
+| Компоненты | Vitest + jsdom/happy-dom + Vue Test Utils или Testing Library | Рендер, события, `emit`, слоты |
+| Сценарии в браузере | Playwright (или Cypress) | Настоящий браузер, маршруты, сеть |
+
+```ts
+import { mount, flushPromises } from '@vue/test-utils'
+import { createTestingPinia } from '@pinia/testing'
+import { expect, it } from 'vitest'
+import Counter from './Counter.vue'
+
+it('increments and emits change', async () => {
+  const wrapper = mount(Counter, {
+    props: { start: 1 },
+    global: { plugins: [createTestingPinia()] }, // store actions become spies
+  })
+  await wrapper.get('button').trigger('click') // await: the DOM updates after nextTick
+  expect(wrapper.text()).toContain('2')
+  expect(wrapper.emitted('change')).toEqual([[2]])
+  await flushPromises() // settle pending fetches
+})
+```
+
+- `trigger` и `setValue` возвращают промис, который ждёт `nextTick`: без `await` проверка увидит старый DOM.
+- Testing Library для Vue (`render`, `screen.getByRole`, `userEvent`) ищет элементы так, как их видит пользователь, и не зависит от внутреннего устройства компонента; Vue Test Utils даёт больше доступа к экземпляру (`emitted`, `vm`).
+- Composable с хуками жизненного цикла тестируют внутри небольшого компонента-обёртки; без хуков достаточно вызвать его в `effectScope`.
+- Pinia: `createTestingPinia()` подменяет действия шпионами для тестов компонентов, `setActivePinia(createPinia())` для тестов самого стора.
 
 ## Главное
 
-- `createRouter` с историей, guards возвращают маршрут или `false`, `props: true` для параметров, ленивые страницы через `import()`.
-- Vue Router 5 перенёс файловый роутинг в ядро без ломающих изменений для обычной конфигурации.
-- `createSSRApp` и `renderToString` на сервере, гидратация на клиенте; `useId`, `data-allow-mismatch`, ленивая гидратация из 3.5.
-- Глобальное состояние в модулях при SSR опасно; Pinia изолирует запросы.
-- Nuxt 4 для SSR и SSG; тесты на Vitest и Vue Test Utils или Testing Library.
+- `createSSRApp` и `renderToString` на сервере, гидратация на клиенте: Vue переиспользует готовый DOM и навешивает обработчики.
+- Разметка первого рендера на клиенте должна совпасть с серверной; `useId`, `data-allow-mismatch`, браузерный код в `onMounted`.
+- Ленивая гидратация (3.5) откладывает оживление невидимых или неважных частей.
+- Глобальное состояние в модулях при SSR общее для всех запросов; Pinia изолирует запросы.
+- Nuxt 4: SSR, SSG, SPA и кэширование для каждого маршрута через `routeRules`, данные через `useFetch` и `useAsyncData`.
+- Тесты: Vitest, Vue Test Utils или Testing Library, `createTestingPinia`, Playwright для E2E.

@@ -54,6 +54,62 @@ after nextTick, DOM shows 2
 - Before `nextTick` the DOM is still old: if you need to measure an element after a change, wait for `await nextTick()` or use `flush: 'post'`.
 - `sync` is rarely useful (for example for debugging); with many changes it is expensive.
 
+## watchEffect, watchPostEffect, watchSyncEffect
+
+These are the same `watchEffect` with a different `flush`: `watchPostEffect(fn)` is `watchEffect(fn, { flush: 'post' })`, `watchSyncEffect(fn)` is `{ flush: 'sync' }`.
+
+```js dom
+import { createApp, nextTick, ref, watchEffect, watchPostEffect, watchSyncEffect } from 'vue'
+
+const count = ref(0)
+const el = document.createElement('div')
+createApp({ setup: () => ({ count }), template: `<b>{{ count }}</b>` }).mount(el)
+const dom = () => el.textContent
+
+watchEffect(() => console.log(`watchEffect     count=${count.value} DOM=${dom()}`))
+watchPostEffect(() => console.log(`watchPostEffect count=${count.value} DOM=${dom()}`))
+watchSyncEffect(() => console.log(`watchSyncEffect count=${count.value} DOM=${dom()}`))
+console.log('--- count = 1, 2, 3')
+count.value = 1
+count.value = 2
+count.value = 3
+await nextTick()
+```
+
+```output
+watchEffect     count=0 DOM=0
+watchSyncEffect count=0 DOM=0
+--- count = 1, 2, 3
+watchSyncEffect count=1 DOM=0
+watchSyncEffect count=2 DOM=0
+watchSyncEffect count=3 DOM=0
+watchEffect     count=3 DOM=0
+watchPostEffect count=3 DOM=3
+```
+
+- `watchSyncEffect` fired on each of the three assignments, with no batching.
+- `watchEffect` ran once with the final `3`, but the DOM still showed `0`: it runs before the component update.
+- `watchPostEffect` defers even its **first** run until after rendering, so it printed nothing at creation and then saw both the new value and the new DOM.
+
+```mermaid
+flowchart TD
+  W["count.value = 1, 2, 3"] --> SY["sync:<br/>at once, 3 times"]
+  W --> MQ["scheduler<br/>microtask"]
+  MQ --> PRE["pre: watch,<br/>watchEffect"]
+  PRE --> RENDER["render and patch<br/>of components"]
+  RENDER --> POST["post: watchPostEffect,<br/>nextTick"]
+```
+
+## All effects compared
+
+| | Runs on creation | Old value | What it tracks | When it runs |
+|---|---|---|---|---|
+| `computed` | No, lazily on first read | Yes (getter argument, 3.4) | Everything read | On read, if deps changed |
+| `watch` | No (`immediate: true` changes that) | Yes | An explicit source | Before render (`pre`), batched |
+| `watchEffect` | Yes, synchronously | No | Everything read | Before render (`pre`), batched |
+| `watchPostEffect` | Yes, but after render | No | Everything read | After render (`post`) |
+| `watchSyncEffect` | Yes, synchronously | No | Everything read | Right on every change (`sync`) |
+
 ## Depth: deep, getter, once
 
 ```js run
@@ -149,5 +205,6 @@ shown: user 2
 
 - `watch` watches an explicit source and does not run immediately; `watchEffect` runs immediately and tracks everything read.
 - Changes are batched: `pre` before the DOM update, `post` after it, `sync` on every assignment; `nextTick` waits for the pass.
+- `watchPostEffect` and `watchSyncEffect` are `watchEffect` with `flush: 'post'` and `'sync'`; the first run of `watchPostEffect` is also after render.
 - `watch(ref)` is shallow, `watch(reactive)` is deep; a getter watches what it read; `once` since 3.4, numeric `deep` since 3.5.
 - Request races are closed by cleanup: `onWatcherCleanup` before the first `await`, or `onCleanup`.

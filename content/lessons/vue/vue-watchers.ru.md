@@ -54,6 +54,62 @@ after nextTick, DOM shows 2
 - До `nextTick` DOM ещё старый: если после изменения нужно измерить элемент, ждут `await nextTick()` или используют `flush: 'post'`.
 - `sync` полезен редко (например, для отладки); на большом количестве изменений он дорогой.
 
+## watchEffect, watchPostEffect, watchSyncEffect
+
+Это один и тот же `watchEffect` с разным `flush`: `watchPostEffect(fn)` это `watchEffect(fn, { flush: 'post' })`, `watchSyncEffect(fn)` это `{ flush: 'sync' }`.
+
+```js dom
+import { createApp, nextTick, ref, watchEffect, watchPostEffect, watchSyncEffect } from 'vue'
+
+const count = ref(0)
+const el = document.createElement('div')
+createApp({ setup: () => ({ count }), template: `<b>{{ count }}</b>` }).mount(el)
+const dom = () => el.textContent
+
+watchEffect(() => console.log(`watchEffect     count=${count.value} DOM=${dom()}`))
+watchPostEffect(() => console.log(`watchPostEffect count=${count.value} DOM=${dom()}`))
+watchSyncEffect(() => console.log(`watchSyncEffect count=${count.value} DOM=${dom()}`))
+console.log('--- count = 1, 2, 3')
+count.value = 1
+count.value = 2
+count.value = 3
+await nextTick()
+```
+
+```output
+watchEffect     count=0 DOM=0
+watchSyncEffect count=0 DOM=0
+--- count = 1, 2, 3
+watchSyncEffect count=1 DOM=0
+watchSyncEffect count=2 DOM=0
+watchSyncEffect count=3 DOM=0
+watchEffect     count=3 DOM=0
+watchPostEffect count=3 DOM=3
+```
+
+- `watchSyncEffect` сработал на каждое из трёх присваиваний, без группировки.
+- `watchEffect` выполнился один раз с итоговым `3`, но DOM ещё показывал `0`: он идёт до обновления компонента.
+- `watchPostEffect` даже **первый** запуск откладывает на после рендера, поэтому при создании ничего не напечатал, а затем увидел и новое значение, и новый DOM.
+
+```mermaid
+flowchart TD
+  W["count.value = 1, 2, 3"] --> SY["sync:<br/>сразу, 3 раза"]
+  W --> MQ["микрозадача<br/>планировщика"]
+  MQ --> PRE["pre: watch,<br/>watchEffect"]
+  PRE --> RENDER["рендер и патч<br/>компонентов"]
+  RENDER --> POST["post: watchPostEffect,<br/>nextTick"]
+```
+
+## Сравнение всех эффектов
+
+| | Запуск при создании | Старое значение | Что отслеживает | Когда выполняется |
+|---|---|---|---|---|
+| `computed` | Нет, лениво при первом чтении | Есть (аргумент геттера, 3.4) | Всё прочитанное | При чтении, если зависимости изменились |
+| `watch` | Нет (`immediate: true` меняет) | Есть | Явный источник | До рендера (`pre`), группируется |
+| `watchEffect` | Да, синхронно | Нет | Всё прочитанное | До рендера (`pre`), группируется |
+| `watchPostEffect` | Да, но после рендера | Нет | Всё прочитанное | После рендера (`post`) |
+| `watchSyncEffect` | Да, синхронно | Нет | Всё прочитанное | Сразу на каждое изменение (`sync`) |
+
 ## Глубина: deep, getter, once
 
 ```js run
@@ -149,5 +205,6 @@ shown: user 2
 
 - `watch` следит за явным источником и не запускается сразу; `watchEffect` запускается сразу и отслеживает всё прочитанное.
 - Изменения группируются: `pre` до обновления DOM, `post` после, `sync` на каждое присваивание; `nextTick` ждёт прохода.
+- `watchPostEffect` и `watchSyncEffect` это `watchEffect` с `flush: 'post'` и `'sync'`; первый запуск `watchPostEffect` тоже после рендера.
 - `watch(ref)` мелкий, `watch(reactive)` глубокий; геттер следит за прочитанным; `once` с 3.4, числовой `deep` с 3.5.
 - Гонки запросов закрывает очистка: `onWatcherCleanup` до первого `await` или `onCleanup`.

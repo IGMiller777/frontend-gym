@@ -23,6 +23,24 @@ export function useMouse() {
 }
 ```
 
+```mermaid
+flowchart TB
+  subgraph A["Component A"]
+    direction TB
+    A1["useMouse()"] --> A2["its own x, y"]
+  end
+  subgraph B["Component B"]
+    direction TB
+    B1["useMouse()"] --> B2["its own x, y"]
+  end
+  subgraph S["Pinia"]
+    direction TB
+    S1["useCart()"] --> S2["one store<br/>per app"]
+  end
+```
+
+Each call of a composable creates **new** state for its component: a composable reuses logic, not data. If state must be shared, move it outside the function (a module variable) or into a Pinia store, which is created once.
+
 Rules:
 
 - the name starts with `use`, and it is called only synchronously in `setup` or another composable (after `await`, hooks are no longer bound to the component);
@@ -73,6 +91,16 @@ ticked before stop: true | frozen after stop: true
 
 Pinia holds state shared by different parts of the app: the user, the cart, settings. A setup-style store is written like a composable: `ref`s become state, `computed`s getters, functions actions. The store is created once per app on the first `useStore()`.
 
+```mermaid
+flowchart TD
+  C["Component"] -->|"calls an action<br/>cart.add()"| ACT["actions<br/>(functions, may be async)"]
+  ACT -->|"change"| ST["state<br/>(ref)"]
+  ST --> G["getters<br/>(computed)"]
+  ST -->|"storeToRefs"| C
+  G -->|"storeToRefs"| C
+  ST -.->|"$subscribe, plugins,<br/>DevTools, SSR state"| X["Store observers"]
+```
+
 ```ts run
 import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
@@ -120,10 +148,26 @@ total ref: 11 | copied number: 0
 
 ## Where to keep state
 
-- Local to a component: a `ref` in the component.
-- For a subtree: `provide`/`inject`.
-- Shared by the app and needed in DevTools, SSR and tests: Pinia. A plain global `reactive` in a module works on the client too, but under SSR it becomes shared by all requests, while Pinia keeps separate state per request.
-- Server data (a request cache, refetching): Pinia Colada or TanStack Query for Vue.
+```mermaid
+flowchart LR
+  Q(["Who needs the state?"]) --> L["One component:<br/>a ref in the component"]
+  Q --> T["A subtree (a form, a table, a section theme):<br/>provide / inject"]
+  Q --> G["The whole app (user, cart):<br/>Pinia"]
+  Q --> SRV["It is server data:<br/>Pinia Colada or TanStack Query"]
+  Q --> URL["It must live in the address (filters, page):<br/>route query"]
+```
+
+- A plain global `reactive` in a module works on the client too, but under SSR it becomes shared by all requests, while Pinia keeps separate state per request. Pinia also gives DevTools, plugins (for example, persisting to `localStorage`) and easy mocking in tests.
+- Server data is a cache, not app state: refetching, staleness, request deduplication. Use a query library for it instead of writing this by hand in a store.
+- State that should survive a reload and be shareable by link (filters, sorting, page number) lives in the address.
+
+| | Setup store | Options store |
+|---|---|---|
+| State | `ref` | `state: () => ({ ... })` |
+| Getters | `computed` | `getters` |
+| Actions | functions | `actions` with `this` |
+| Can use | any composables, `watch`, `inject` | only what the options offer |
+| `$reset()` | write it yourself | built in |
 
 ## Key points
 
@@ -132,3 +176,4 @@ total ref: 11 | copied number: 0
 - `effectScope` collects effects and stops them at once; this is how a component cleans up on unmount.
 - Pinia: a setup store like a composable, `storeToRefs` for destructuring, `$patch`, `$subscribe`.
 - Pinia 4 is ESM-only; a global `reactive` is unsafe under SSR.
+- State by scope: component, subtree (`provide`), app (Pinia), server cache (a query library), address (filters).

@@ -19,6 +19,7 @@ export const officialDomains = [
   'vuejs.org',
   'router.vuejs.org',
   'pinia.vuejs.org',
+  'v3-migration.vuejs.org',
   'rxjs.dev',
   'ngrx.io',
   'nextjs.org',

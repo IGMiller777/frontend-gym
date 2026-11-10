@@ -1,6 +1,6 @@
 ## О чём урок
 
-Реактивность это основа Vue: шаблон, `computed` и наблюдатели перезапускаются, потому что Vue знает, какие данные они прочитали. Здесь как устроены `ref` и `reactive`, почему `reactive` возвращает прокси, где теряется реактивность и как её вернуть, `computed` и его кэш, `shallowRef` и `readonly`. Примеры выполняются на Vue 3.5 в Node.js.
+Реактивность это основа Vue: шаблон, `computed` и наблюдатели перезапускаются, потому что Vue знает, какие данные они прочитали. Здесь механизм track и trigger, как устроены `ref` и `reactive`, почему `reactive` возвращает прокси, где теряется реактивность и как её вернуть, `computed` и его кэш, `shallowRef` и `readonly`. Примеры выполняются на Vue 3.5 в Node.js.
 
 ## ref и reactive
 
@@ -39,6 +39,84 @@ reactive(0) returns 0
 - Изменения через **исходный объект** Vue не видит: работать нужно с прокси.
 - `reactive` не принимает примитивы: в разработке предупреждение и исходное значение, ошибки нет. Для примитивов `ref`.
 - Документация рекомендует `ref` по умолчанию: у `reactive` больше ловушек (ниже).
+
+## Как Vue узнаёт о зависимостях
+
+Всё, что перезапускается при изменении данных (рендер компонента, `computed`, `watch`, `watchEffect`), Vue называет **эффектом**. Механизм состоит из двух операций:
+
+```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 300
+---
+flowchart TD
+  E["Эффект запускается<br/>(рендер, computed, watchEffect)<br/>и становится activeEffect"] --> R["Читает state.name"]
+  R --> T["Ловушка get → track:<br/>запомнить activeEffect<br/>в зависимостях state.name"]
+  W["Код пишет state.name = 'Bob'"] --> S["Ловушка set → trigger:<br/>найти эффекты, читавшие state.name"]
+  S --> Q["Планировщик ставит их в очередь<br/>и перезапускает одним проходом"]
+  Q --> E
+```
+
+Упрощённая модель, по которой это можно объяснить на собеседовании:
+
+```js run
+// A tiny model of Vue reactivity: effects, track on read, trigger on write
+let activeEffect = null
+const deps = new WeakMap() // target → key → Set of effects
+
+function track(target, key) {
+  if (!activeEffect) return
+  if (!deps.has(target)) deps.set(target, new Map())
+  const byKey = deps.get(target)
+  if (!byKey.has(key)) byKey.set(key, new Set())
+  byKey.get(key).add(activeEffect)
+}
+function trigger(target, key) {
+  deps.get(target)?.get(key)?.forEach((effect) => effect())
+}
+function reactive(obj) {
+  return new Proxy(obj, {
+    get(target, key, receiver) {
+      track(target, key)
+      return Reflect.get(target, key, receiver)
+    },
+    set(target, key, value, receiver) {
+      const ok = Reflect.set(target, key, value, receiver)
+      trigger(target, key)
+      return ok
+    },
+  })
+}
+function effect(fn) {
+  const run = () => {
+    activeEffect = run
+    try {
+      fn()
+    } finally {
+      activeEffect = null
+    }
+  }
+  run()
+}
+
+const state = reactive({ name: 'Ann', age: 30, unused: 0 })
+effect(() => console.log(`render: ${state.name}, ${state.age}`))
+state.age = 31 // tracked: the effect reran
+state.unused = 1 // never read by the effect: nothing happens
+state.name = 'Bob'
+```
+
+```output
+render: Ann, 30
+render: Ann, 31
+render: Bob, 31
+```
+
+- **track** при чтении записывает текущий эффект в зависимости пары «объект + ключ», **trigger** при записи перезапускает записанные эффекты. Поэтому изменение `unused` ничего не вызвало: его никто не читал.
+- Зависимости собираются заново при каждом запуске, поэтому они **динамические**: ветка `if`, которая не выполнилась, ничего не отслеживает.
+- `ref` устроен так же, но без `Proxy`: это объект с геттером и сеттером `value`, которые вызывают track и trigger. Поэтому `ref` работает с примитивами, а `reactive` нет (прокси можно создать только для объекта).
+- В настоящем Vue эффекты перезапускаются не синхронно, а через планировщик (урок о наблюдателях), а вместо `Set` в 3.5 используются двусвязные списки и счётчики версий (отсюда −56% памяти). В 3.6 реактивность переписывается на основе alien-signals; модель track/trigger при этом та же.
 
 ## Где теряется реактивность
 
@@ -129,6 +207,7 @@ Bob | Bob Ray
 
 ## Главное
 
+- Эффект (рендер, `computed`, наблюдатель) при чтении подписывается на данные (track), запись перезапускает подписчиков (trigger).
 - `ref` для любых значений (`.value` в коде, без него в шаблоне), `reactive` для объектов, возвращает прокси.
 - Изменения через исходный объект не отслеживаются; `reactive(0)` даёт предупреждение и 0.
 - Деструктуризация и передача свойства в функцию теряют реактивность; помогают `toRefs`, `toRef`, геттеры; `defineProps` с 3.5 деструктурируется реактивно.
