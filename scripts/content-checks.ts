@@ -3,6 +3,8 @@ import { join } from 'node:path'
 import { locales } from '../src/i18n/types'
 import { codingTasks, SOLUTION_MARK } from '../src/content/coding'
 import { lessons, modules } from '../src/content/lessons'
+import { predictTasks } from '../src/content/predict'
+import { foldTrace } from '../src/content/predict/trace'
 import type { QuizQuestion } from '../src/content/lessons/types'
 import { isOfficial, type Source, type Verified } from '../src/content/sources'
 import { tracks } from '../src/content/tracks'
@@ -142,6 +144,46 @@ export function taskProblems(): string[] {
         if (headings(part) !== headings(en[i])) out.push(`${w}: ${i ? 'walkthrough' : 'statement'} section count differs between languages`)
         if (fences(part) !== fences(en[i])) out.push(`${w}: ${i ? 'walkthrough' : 'statement'} code block count differs between languages`)
       })
+    }
+  }
+  return out
+}
+
+/**
+ * "What does it print" tasks: metadata, explanations in both languages, distractors,
+ * a valid event-loop trace whose logs equal the output, and (unless `run` is false)
+ * a real run of the code whose output must match.
+ */
+export function predictProblems(run = true): string[] {
+  const out: string[] = []
+  const trackIds = new Set(tracks.map((t) => t.id))
+  if (new Set(predictTasks.map((t) => t.id)).size !== predictTasks.length) out.push('duplicate predict task ids')
+  for (const task of predictTasks) {
+    const w = `predict ${task.id}`
+    out.push(...metaProblems(w, task, trackIds))
+    for (const l of locales) if (!task.explanation[l].trim()) out.push(`${w}: empty ${l} explanation`)
+    if (!task.output.length) out.push(`${w}: empty output`)
+    if (!task.distractors.length) out.push(`${w}: needs at least one distractor`)
+    for (const d of task.distractors) if (task.output.includes(d)) out.push(`${w}: distractor "${d}" is part of the output`)
+    if (task.trace) {
+      const { state, problems } = foldTrace(task.trace)
+      out.push(...problems.map((p) => `${w} trace: ${p}`))
+      if (state.logs.join('\n') !== task.output.join('\n')) out.push(`${w} trace: logs ${JSON.stringify(state.logs)} differ from the output`)
+      const lines = task.code.trimEnd().split('\n').length
+      for (const e of task.trace) if ('line' in e && (e.line < 1 || e.line > lines)) out.push(`${w} trace: line ${e.line} is outside the code`)
+      task.trace.forEach((e, i) => {
+        if (e.note && locales.some((l) => !e.note![l].trim())) out.push(`${w} trace step ${i + 1}: note missing a language`)
+      })
+    }
+    if (run) {
+      let got: string
+      try {
+        got = runSnippet(task.code)
+      } catch (e) {
+        out.push(`${w}: code threw: ${(e as Error).message.split('\n')[0]}`)
+        continue
+      }
+      if (got !== task.output.join('\n')) out.push(`${w}: real output differs\n  expected: ${JSON.stringify(task.output)}\n  actual:   ${JSON.stringify(got.split('\n'))}`)
     }
   }
   return out

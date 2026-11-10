@@ -4,9 +4,10 @@
  */
 import { codingTasks } from '../src/content/coding'
 import { lessons } from '../src/content/lessons'
+import { predictTasks } from '../src/content/predict'
 import { tracks } from '../src/content/tracks'
 
-const urls = [...new Set([...lessons.flatMap((l) => l.sources), ...codingTasks.flatMap((t) => t.sources), ...tracks.flatMap((t) => t.docs)].map((s) => s.url.split('#')[0]))]
+const urls = [...new Set([...lessons.flatMap((l) => l.sources), ...codingTasks.flatMap((t) => t.sources), ...predictTasks.flatMap((t) => t.sources), ...tracks.flatMap((t) => t.docs)].map((s) => s.url.split('#')[0]))]
 
 async function check(url: string): Promise<string | null> {
   for (const method of ['HEAD', 'GET'] as const) {

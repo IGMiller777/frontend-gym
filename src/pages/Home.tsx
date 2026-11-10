@@ -7,7 +7,7 @@ import { useT } from '../i18n'
 
 const modes = [
   { id: 'coding', icon: Code2, colors: ['#facc15', '#f97316'], to: '/practice/coding' },
-  { id: 'predict', icon: Terminal, colors: ['#22d3ee', '#6366f1'], to: null },
+  { id: 'predict', icon: Terminal, colors: ['#22d3ee', '#6366f1'], to: '/practice/predict' },
   { id: 'incidents', icon: Bug, colors: ['#f43f5e', '#f97316'], to: null },
   { id: 'interview', icon: MessagesSquare, colors: ['#a855f7', '#ec4899'], to: null },
 ] as const
