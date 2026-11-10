@@ -17,9 +17,10 @@ describe('content', () => {
     expect(predictProblems()).toEqual([])
   }, 60_000)
 
-  it('every runnable example prints exactly its output block', () => {
-    expect(snippetProblems()).toEqual([])
-  }, 60_000)
+  // Examples run in parallel; the limit leaves room for slow CI machines (the whole set grows with every track).
+  it('every runnable example prints exactly its output block', async () => {
+    expect(await snippetProblems()).toEqual([])
+  }, 300_000)
 
   it('every diagram parses with Mermaid', () => {
     expect(diagramProblems()).toEqual([])

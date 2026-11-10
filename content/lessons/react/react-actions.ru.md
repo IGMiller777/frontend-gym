@@ -155,7 +155,7 @@ import { act, Suspense, use } from 'react'
 import { createRoot } from 'react-dom/client'
 
 // The promise is created once, outside rendering (a cache or a parent would do this).
-const userPromise = new Promise((resolve) => setTimeout(() => resolve({ name: 'Ann' }), 20))
+const { promise: userPromise, resolve } = Promise.withResolvers()
 
 function User({ promise }) {
   const user = use(promise)
@@ -171,7 +171,10 @@ await act(() =>
   ),
 )
 console.log('first commit:', container.innerHTML)
-await act(() => userPromise)
+await act(async () => {
+  resolve({ name: 'Ann' }) // the response arrives
+  await userPromise
+})
 console.log('after the promise:', container.innerHTML)
 ```
 

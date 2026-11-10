@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { execFile, execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { angularJitApplicationTransform } from '@angular/compiler-cli'
@@ -75,19 +75,36 @@ function compileAngular(code: string): string {
   return js
 }
 
-export function runSnippet(code: string, lang: Snippet['lang'] = 'js', mode: Snippet['mode'] = 'run'): string {
+/** The node command line for one example, and how to clean its output. */
+function snippetCommand(code: string, lang: Snippet['lang'], mode: Snippet['mode']) {
   const react = lang === 'jsx' || lang === 'tsx'
   const angular = /from '@angular\//.test(code)
   const js = react ? compileJsx(code, lang) : angular && lang === 'ts' ? compileAngular(code) : lang === 'ts' ? stripTypes(code) : code
   const env = mode === 'dom' ? ['--import', pathToFileURL(DOM_ENV).href] : []
   // Angular packages ship partially compiled: outside the CLI they need the JIT compiler loaded first.
   if (angular) env.push('--import', '@angular/compiler')
-  const out = execFileSync(process.execPath, [...env, '--input-type=module', '--no-warnings', '-e', js], {
-    encoding: 'utf8',
-    timeout: 10_000,
-    cwd: ROOT,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  })
+  const args = [...env, '--input-type=module', '--no-warnings', '-e', js]
   // Angular's development-mode banner is not part of any example's output.
-  return (angular ? out.replace(/^Angular is running in development mode\.\n?/m, '') : out).trimEnd()
+  const clean = (out: string) => (angular ? out.replace(/^Angular is running in development mode\.\n?/m, '') : out).trimEnd()
+  return { args, clean }
+}
+
+/** Time limit for one example. Generous: in CI many examples run at once on few cores. */
+const SNIPPET_TIMEOUT_MS = 20_000
+
+export function runSnippet(code: string, lang: Snippet['lang'] = 'js', mode: Snippet['mode'] = 'run'): string {
+  const { args, clean } = snippetCommand(code, lang, mode)
+  const out = execFileSync(process.execPath, args, { encoding: 'utf8', timeout: SNIPPET_TIMEOUT_MS, cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] })
+  return clean(out)
+}
+
+/** The same as `runSnippet`, without blocking: lets many examples run in parallel. */
+export function runSnippetAsync(code: string, lang: Snippet['lang'] = 'js', mode: Snippet['mode'] = 'run'): Promise<string> {
+  const { args, clean } = snippetCommand(code, lang, mode)
+  return new Promise((resolve, reject) => {
+    execFile(process.execPath, args, { encoding: 'utf8', timeout: SNIPPET_TIMEOUT_MS, cwd: ROOT, maxBuffer: 16 * 1024 * 1024 }, (error, stdout, stderr) => {
+      if (error) reject(Object.assign(error, { message: `${error.message}\n${stderr}` }))
+      else resolve(clean(stdout))
+    })
+  })
 }
