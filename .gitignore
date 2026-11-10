@@ -11,3 +11,6 @@ dist-ssr
 
 # player progress saved by the local API server
 data/
+
+# component sandbox bundle, built by scripts/build-frame.ts
+public/runner/
