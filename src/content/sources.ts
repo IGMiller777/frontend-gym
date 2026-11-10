@@ -6,6 +6,7 @@ export const officialDomains = [
   'developer.mozilla.org',
   'web.dev',
   'developer.chrome.com',
+  'developers.google.com',
   'html.spec.whatwg.org',
   'fetch.spec.whatwg.org',
   'dom.spec.whatwg.org',

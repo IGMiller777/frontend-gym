@@ -45,6 +45,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "concurrently": "^10.0.6",
+    "dom-accessibility-api": "^0.7.1",
     "hono": "^4.13.13",
     "jsdom": "^31.0.0",
     "oxlint": "^1.81.0",

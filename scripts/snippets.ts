@@ -44,7 +44,7 @@ export function extractSnippets(md: string): Snippet[] {
 const DOM_PRELUDE = `import { JSDOM } from 'jsdom'
 const __dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://app.example.com/' })
 // DOM names Node lacks come from jsdom; Node's own Event classes are replaced so events dispatch on DOM nodes.
-const __override = ['Event', 'EventTarget', 'CustomEvent', 'AbortController', 'AbortSignal', 'DOMException']
+const __override = ['Event', 'EventTarget', 'CustomEvent', 'AbortController', 'AbortSignal', 'DOMException', 'FormData']
 for (const k of Object.getOwnPropertyNames(__dom.window)) {
   const dom = /^[A-Z]/.test(k) || ['document', 'customElements', 'getComputedStyle', 'requestAnimationFrame'].includes(k)
   if (dom && (!(k in globalThis) || __override.includes(k))) globalThis[k] = __dom.window[k]
