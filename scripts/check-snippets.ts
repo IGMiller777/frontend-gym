@@ -15,9 +15,9 @@ for (const [name, errors] of Object.entries(typeCheck(ts)))
     bad++
     console.log(`✗ ${name}: ${e}`)
   }
-for (const s of snippets.filter((x) => x.mode === 'run')) {
+for (const s of snippets.filter((x) => x.mode !== 'check')) {
   try {
-    const got = runSnippet(s.code, s.lang)
+    const got = runSnippet(s.code, s.lang, s.mode)
     if (got !== s.expected) {
       bad++
       console.log(`✗ line ${s.line}: output\n${got}\n--- expected\n${s.expected}`)
