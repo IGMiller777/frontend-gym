@@ -1,9 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { locales } from '../src/i18n/types'
+import { codingTasks, SOLUTION_MARK } from '../src/content/coding'
 import { lessons, modules } from '../src/content/lessons'
 import type { QuizQuestion } from '../src/content/lessons/types'
-import { isOfficial } from '../src/content/sources'
+import { isOfficial, type Source, type Verified } from '../src/content/sources'
 import { tracks } from '../src/content/tracks'
 import { extractSnippets, runSnippet } from './snippets'
 
@@ -94,6 +95,54 @@ export function staticProblems(): string[] {
     }
     if (m.exam.pass <= 0 || m.exam.pass > 1) out.push(`${w}: exam.pass must be in (0, 1]`)
     out.push(...quizProblems(`${w} exam`, m.exam.questions))
+  }
+  return out
+}
+
+/** Shared rules for any content item: known track, verified date, official sources. */
+function metaProblems(w: string, item: { track: string; sources: Source[]; verified: Verified }, trackIds: Set<string>): string[] {
+  const out: string[] = []
+  if (!trackIds.has(item.track)) out.push(`${w}: unknown track ${item.track}`)
+  if (!/^\d{4}-\d{2}$/.test(item.verified.date)) out.push(`${w}: verified.date must be YYYY-MM`)
+  if (!item.sources.some((s) => s.kind !== 'article')) out.push(`${w}: needs at least one official or spec source`)
+  for (const s of item.sources) if (s.kind !== 'article' && !isOfficial(s.url)) out.push(`${w}: ${s.url} is not on the official domain list`)
+  return out
+}
+
+export const taskPath = (id: string, locale: string) => join(ROOT, 'content', 'tasks', `${id}.${locale}.md`)
+
+/** Coding tasks: ids, metadata, ru/en bodies with the same structure and a solution marker. */
+export function taskProblems(): string[] {
+  const out: string[] = []
+  const trackIds = new Set(tracks.map((t) => t.id))
+  const ids = new Set(codingTasks.map((t) => t.id))
+  if (ids.size !== codingTasks.length) out.push('duplicate coding task ids')
+  for (const task of codingTasks) {
+    const w = `task ${task.id}`
+    if (!/^[a-z0-9-]+$/.test(task.id)) out.push(`${w}: id must be kebab-case`)
+    out.push(...metaProblems(w, task, trackIds))
+    task.tests.forEach((t, i) => {
+      for (const l of locales) if (!t.name[l].trim()) out.push(`${w} test #${i + 1}: empty ${l} name`)
+    })
+    const bodies: Record<string, string> = {}
+    for (const l of locales) {
+      if (!existsSync(taskPath(task.id, l))) {
+        out.push(`${w}: missing content/tasks/${task.id}.${l}.md`)
+        continue
+      }
+      bodies[l] = readFileSync(taskPath(task.id, l), 'utf8')
+      if (bodies[l].split(SOLUTION_MARK).length !== 2) out.push(`${w}.${l}: needs exactly one ${SOLUTION_MARK} line`)
+      if (/^#\s/m.test(bodies[l])) out.push(`${w}.${l}: use ## headings, the page renders the title itself`)
+    }
+    if (bodies.ru && bodies.en) {
+      const parts = (md: string) => md.split(SOLUTION_MARK)
+      const [ru, en] = [parts(bodies.ru), parts(bodies.en)]
+      ru.forEach((part, i) => {
+        if (en[i] === undefined) return
+        if (headings(part) !== headings(en[i])) out.push(`${w}: ${i ? 'walkthrough' : 'statement'} section count differs between languages`)
+        if (fences(part) !== fences(en[i])) out.push(`${w}: ${i ? 'walkthrough' : 'statement'} code block count differs between languages`)
+      })
+    }
   }
   return out
 }

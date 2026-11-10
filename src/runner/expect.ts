@@ -52,6 +52,8 @@ export function equals(a: unknown, b: unknown, seen = new Map<object, object>())
   seen.set(a, b)
   if (a instanceof Date) return a.getTime() === (b as Date).getTime()
   if (a instanceof RegExp) return a.toString() === (b as RegExp).toString()
+  // Error message and name are own but not enumerable: compare them explicitly.
+  if (a instanceof Error && (a.name !== (b as Error).name || a.message !== (b as Error).message)) return false
   if (a instanceof Map) {
     const m = b as Map<unknown, unknown>
     if (a.size !== m.size) return false

@@ -26,6 +26,8 @@ describe('expect', () => {
     vexpect(equals(sparse, [1, undefined, 3])).toBe(false)
     vexpect(equals({ a: 1 }, { a: 1, b: undefined })).toBe(false)
     vexpect(equals(new Date(5), new Date(5))).toBe(true)
+    vexpect(equals(new Error('a'), new Error('b'))).toBe(false)
+    vexpect(equals(new TypeError('a'), new TypeError('a'))).toBe(true)
     const a: Record<string, unknown> = {}
     a.self = a
     const b: Record<string, unknown> = {}

@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { quizProblems, snippetProblems, staticProblems } from './content-checks'
+import { quizProblems, snippetProblems, staticProblems, taskProblems } from './content-checks'
 import { extractSnippets } from './snippets'
 
 describe('content', () => {
   it('passes static checks (files, ru/en parity, sources, links, quizzes)', () => {
     expect(staticProblems()).toEqual([])
+  })
+
+  it('coding tasks have both languages, sources and the same structure', () => {
+    expect(taskProblems()).toEqual([])
   })
 
   it('every runnable example prints exactly its output block', () => {
