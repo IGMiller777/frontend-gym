@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { locales } from '../src/i18n/types'
@@ -218,4 +219,26 @@ export function snippetProblems(): string[] {
   for (const [file, errors] of Object.entries(Object.keys(tsFiles).length ? typeCheck(tsFiles) : {}))
     for (const e of errors) out.push(`${file.replace(/\.tsx?$/, '')}: type error at block line ${e}`)
   return out
+}
+
+/** Every ```mermaid block in lesson bodies (both languages) must parse with Mermaid itself. */
+export function diagramProblems(): string[] {
+  const blocks: { where: string; code: string }[] = []
+  for (const lesson of lessons)
+    for (const locale of locales) {
+      if (!existsSync(bodyPath(lesson.track, lesson.id, locale))) continue
+      const md = readBody(lesson.track, lesson.id, locale)
+      for (const m of md.matchAll(/^```mermaid\n([\s\S]*?)^```/gm)) {
+        const line = md.slice(0, m.index).split('\n').length
+        blocks.push({ where: `${lesson.id}.${locale}:${line}`, code: m[1] })
+      }
+    }
+  if (!blocks.length) return []
+  const res = spawnSync(process.execPath, ['--import', join(ROOT, 'scripts', 'dom-env.mjs'), join(ROOT, 'scripts', 'parse-diagrams.mjs')], {
+    input: JSON.stringify(blocks),
+    encoding: 'utf8',
+    cwd: ROOT,
+  })
+  if (res.status !== 0) return [`diagram parser failed: ${res.stderr.split('\n')[0]}`]
+  return (JSON.parse(res.stdout) as { where: string; error: string }[]).map((e) => `${e.where}: diagram does not parse: ${e.error}`)
 }

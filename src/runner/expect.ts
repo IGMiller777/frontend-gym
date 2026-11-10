@@ -132,7 +132,8 @@ type Matchers = {
   toBeLessThanOrEqual(n: number): void
   toContain(item: unknown): void
   toHaveLength(n: number): void
-  toThrow(expected?: string | RegExp): void
+  /** A message substring, a pattern, or an error class (`toThrow(TypeError)`). */
+  toThrow(expected?: string | RegExp | (new (...args: never[]) => unknown)): void
   toHaveBeenCalled(): void
   toHaveBeenCalledTimes(n: number): void
   toHaveBeenCalledWith(...args: unknown[]): void
@@ -190,8 +191,11 @@ function matchers(received: unknown, negate: boolean): Matchers {
         thrown = e
       }
       const message = thrown instanceof Error ? thrown.message : String(thrown)
-      const ok = did && (expected === undefined || (typeof expected === 'string' ? message.includes(expected) : expected.test(message)))
-      assert(ok, 'toThrow()', expected === undefined ? 'a thrown error' : format(expected), did ? `thrown ${format(thrown)}` : 'nothing was thrown')
+      const ok =
+        did &&
+        (expected === undefined ||
+          (typeof expected === 'string' ? message.includes(expected) : typeof expected === 'function' ? thrown instanceof expected : expected.test(message)))
+      assert(ok, 'toThrow()', expected === undefined ? 'a thrown error' : typeof expected === 'function' ? `an instance of ${expected.name}` : format(expected), did ? `thrown ${format(thrown)}` : 'nothing was thrown')
     },
     toHaveBeenCalled: () => {
       const m = mockOf('toHaveBeenCalled()')

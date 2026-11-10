@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { foldTrace } from '../src/content/predict/trace'
-import { predictProblems, quizProblems, snippetProblems, staticProblems, taskProblems } from './content-checks'
+import { diagramProblems, predictProblems, quizProblems, snippetProblems, staticProblems, taskProblems } from './content-checks'
 import { extractSnippets, runSnippet } from './snippets'
 import { typeCheck } from './typecheck'
 
@@ -19,6 +19,10 @@ describe('content', () => {
 
   it('every runnable example prints exactly its output block', () => {
     expect(snippetProblems()).toEqual([])
+  }, 60_000)
+
+  it('every diagram parses with Mermaid', () => {
+    expect(diagramProblems()).toEqual([])
   }, 60_000)
 })
 

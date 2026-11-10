@@ -1,5 +1,5 @@
 /**
- * Entry of the component sandbox: built by scripts/build-frame.ts into one classic script
+ * Entry of the sandbox for component and DOM tasks: built by scripts/build-frame.ts into one classic script
  * (public/runner/react-frame.js, React included) and evaluated inside a `sandbox="allow-scripts allow-forms"` iframe.
  * The frame has an opaque origin: no access to the app, its storage or its cookies.
  * It only talks to the parent through postMessage.
@@ -7,9 +7,10 @@
 import { createElement, type ComponentType } from 'react'
 import { createRoot } from 'react-dom/client'
 import { load, type RunnableTest } from './harness'
+import { runDomTests } from './dom-runtime'
 import { reactRunOptions, runReactTests } from './react-runtime'
 
-export type FrameRequest = { type: 'run'; source: string; tests: RunnableTest[] } | { type: 'preview'; source: string; component: string }
+export type FrameRequest = { type: 'run'; source: string; tests: RunnableTest[]; runtime?: 'react' | 'dom' } | { type: 'preview'; source: string; component: string }
 
 const send = (message: unknown) => parent.postMessage(message, '*')
 
@@ -17,7 +18,8 @@ window.addEventListener('message', async (e: MessageEvent<FrameRequest>) => {
   if (e.source !== parent) return
   const req = e.data
   if (req.type === 'run') {
-    send({ type: 'result', result: await runReactTests(req.source, req.tests) })
+    const run = req.runtime === 'dom' ? runDomTests : runReactTests
+    send({ type: 'result', result: await run(req.source, req.tests) })
   } else if (req.type === 'preview') {
     const root = document.getElementById('preview')!
     try {

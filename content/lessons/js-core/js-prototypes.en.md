@@ -4,6 +4,17 @@ In the [this lesson](/learn/js-this) methods read data from the object they were
 
 ## The prototype chain
 
+The chain for `const rex = new Dog()`, where `class Dog extends Animal`:
+
+```mermaid
+flowchart LR
+  R["rex<br/>{ name }"] -->|"[[Prototype]]"| DP["Dog.prototype<br/>{ bark }"]
+  DP -->|"[[Prototype]]"| AP["Animal.prototype<br/>{ eat }"]
+  AP -->|"[[Prototype]]"| OP["Object.prototype<br/>{ toString, hasOwnProperty }"]
+  OP -->|"[[Prototype]]"| N["null"]
+  Q["rex.toString()"] -.->|"not found on rex,<br/>search up the chain"| OP
+```
+
 Every object has a hidden `[[Prototype]]` link to another object or to `null`. When you read a property the object does not have, the engine looks in the prototype, then in the prototype's prototype, and so on until `null`. If the property is found nowhere, the result is `undefined`, not an error.
 
 ```js run

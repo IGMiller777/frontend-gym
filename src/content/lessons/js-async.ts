@@ -200,6 +200,38 @@ export const jsAsyncLessons: Lesson[] = [
     ],
     verified,
   },
+  {
+    id: 'async-patterns',
+    track: 'js-async',
+    emoji: '🧰',
+    minutes: 14,
+    title: { ru: 'Асинхронные паттерны', en: 'Async patterns' },
+    summary: {
+      ru: 'Повтор с экспоненциальной задержкой, таймаут, ограничение параллельности, последовательная очередь, «побеждает последний», пачки запросов и Promise.withResolvers.',
+      en: 'Retry with exponential backoff, timeouts, a concurrency limit, a serial queue, "latest wins", request batching and Promise.withResolvers.',
+    },
+    quiz: {
+      ru: [
+        { q: 'Зачем к задержке повтора добавляют случайный разброс?', options: ['Чтобы повтор был быстрее', 'Чтобы клиенты не повторили разом', 'Так требует спецификация', 'Чтобы обойти кэш браузера'], correct: 1, why: 'Без разброса тысячи клиентов после сбоя повторят запрос в один и тот же момент и снова перегрузят сервер.' },
+        { q: 'Какой запрос нельзя повторять без ключа идемпотентности?', options: ['`GET /users`', '`HEAD /health`', '`POST /payments`', '`GET /config`'], correct: 2, why: 'Повтор неидемпотентной операции может выполнить её дважды, например дважды списать деньги.' },
+        { q: 'Что делает `Promise.race([task, timeout])` с самой задачей?', options: ['Отменяет её по таймауту', 'Ничего: задача продолжается', 'Ставит её на паузу', 'Перезапускает её снова'], correct: 1, why: 'Промис нельзя отменить снаружи; `race` только перестаёт ждать. Для `fetch` нужен `AbortSignal`.' },
+        { q: 'Как пул работников сохраняет порядок результатов?', options: ['Сортирует их в конце', 'Пишет по индексу задачи', 'Ждёт задачи по одной', 'Никак, порядок случайный'], correct: 1, why: 'Каждый работник берёт индекс синхронно и кладёт результат в `results[index]`.' },
+      ],
+      en: [
+        { q: 'Why add random jitter to the retry delay?', options: ['To make each retry faster', 'So clients do not retry at once', 'The HTTP spec requires it', 'To bypass the browser cache'], correct: 1, why: 'Without jitter, thousands of clients retry at the same moment after an outage and overload the server again.' },
+        { q: 'Which request must not be retried without an idempotency key?', options: ['`GET /users`', '`HEAD /health`', '`POST /payments`', '`GET /config`'], correct: 2, why: 'Retrying a non-idempotent operation can run it twice, for example charge money twice.' },
+        { q: 'What does `Promise.race([task, timeout])` do to the task itself?', options: ['Cancels it on timeout', 'Nothing: the task goes on', 'Pauses it for a while', 'Restarts it again'], correct: 1, why: 'A promise cannot be cancelled from outside; `race` only stops waiting. `fetch` needs an `AbortSignal`.' },
+        { q: 'How does a worker pool keep results in order?', options: ['It sorts them at the end', 'It writes by task index', 'It awaits tasks one by one', 'It does not: order is random'], correct: 1, why: 'Each worker takes an index synchronously and stores the result in `results[index]`.' },
+      ],
+    },
+    sources: [
+      mdn('AbortSignal.timeout()', 'Web/API/AbortSignal/timeout_static'),
+      mdn('Promise.withResolvers()', 'Web/JavaScript/Reference/Global_Objects/Promise/withResolvers'),
+      mdn('queueMicrotask()', 'Web/API/Window/queueMicrotask'),
+      mdn('Idempotent (glossary)', 'Glossary/Idempotent'),
+    ],
+    verified,
+  },
 ]
 
 export const jsAsyncModule: Module = {
@@ -217,6 +249,8 @@ export const jsAsyncModule: Module = {
         { q: '`fetch` с `signal: AbortSignal.timeout(100)` не успел за 100 мс. С чем отклонится промис?', options: ['`AbortError`', '`TimeoutError`', '`TypeError`', '`RangeError`'], correct: 1, why: 'Сигнал из `AbortSignal.timeout` отменяется с причиной `DOMException` по имени `TimeoutError`.' },
         { q: 'Что из этого ставит задачу, а не микрозадачу?', options: ['`queueMicrotask`', '`await`', '`setTimeout`', '`Promise.then`'], correct: 2, why: 'Таймеры, события и `postMessage` это задачи. Реакции промисов, `await` и `queueMicrotask` это микрозадачи.' },
         { q: 'Где выполнять тяжёлый разбор файла на 50 МБ, чтобы интерфейс не зависал?', options: ['В `requestAnimationFrame`', 'В микрозадачах', 'В Web Worker', 'В Service Worker'], correct: 2, why: 'Web Worker это отдельный поток для вычислений. Service Worker нужен для сети и кэша, а микрозадачи и `requestAnimationFrame` идут в главном потоке.' },
+        { q: 'Какие ошибки стоит повторять с экспоненциальной задержкой?', options: ['Любые ошибки подряд', 'Временные: 503, сеть', 'Ответы 404 и 400', 'Только синтаксические'], correct: 1, why: 'Повторяют временные сбои; ошибки клиента (`4xx`) от повтора не исчезнут.' },
+        { q: 'Как ограничить число одновременных запросов при загрузке 500 файлов?', options: ['`Promise.all` всех сразу', 'Пул из N работников', '`Promise.race` по одному', '`for await` без пула'], correct: 1, why: 'Пул берёт задачи из общей очереди и держит в полёте не больше N.' },
       ],
       en: [
         { q: 'What does `setTimeout(() => log(1)); Promise.resolve().then(() => log(2)); log(3)` print?', options: ['`1 2 3`', '`3 2 1`', '`3 1 2`', '`2 3 1`'], correct: 1, why: 'First the synchronous `3`, then the microtask `2`, then the timer task `1`.' },
@@ -227,6 +261,8 @@ export const jsAsyncModule: Module = {
         { q: 'A `fetch` with `signal: AbortSignal.timeout(100)` took longer than 100 ms. What does it reject with?', options: ['`AbortError`', '`TimeoutError`', '`TypeError`', '`RangeError`'], correct: 1, why: 'A signal from `AbortSignal.timeout` aborts with a `DOMException` named `TimeoutError`.' },
         { q: 'Which of these queues a task, not a microtask?', options: ['`queueMicrotask`', '`await`', '`setTimeout`', '`Promise.then`'], correct: 2, why: 'Timers, events and `postMessage` are tasks. Promise reactions, `await` and `queueMicrotask` are microtasks.' },
         { q: 'Where should a heavy parse of a 50 MB file run so the UI does not freeze?', options: ['In `requestAnimationFrame`', 'In microtasks', 'In a Web Worker', 'In a Service Worker'], correct: 2, why: 'A Web Worker is a separate thread for computation. A Service Worker is for network and caching; microtasks and `requestAnimationFrame` run on the main thread.' },
+        { q: 'Which errors are worth retrying with exponential backoff?', options: ['Any errors at all', 'Temporary: 503, network', 'Responses 404 and 400', 'Only syntax errors'], correct: 1, why: 'Retry temporary failures; client errors (`4xx`) will not go away on retry.' },
+        { q: 'How do you limit concurrent requests when uploading 500 files?', options: ['`Promise.all` on all at once', 'A pool of N workers', '`Promise.race` one by one', '`for await` with no pool'], correct: 1, why: 'A pool takes tasks from a shared queue and keeps at most N in flight.' },
       ],
     },
   },

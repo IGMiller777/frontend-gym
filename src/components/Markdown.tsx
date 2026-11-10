@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import rehypeHighlight from 'rehype-highlight'
 import remarkGfm from 'remark-gfm'
 import { useT } from '../i18n'
+import { Diagram } from './Diagram'
 
 interface HastNode {
   value?: string
@@ -13,7 +14,7 @@ interface HastNode {
 }
 const textOf = (n: HastNode): string => n.value ?? (n.children ?? []).map(textOf).join('')
 
-/** Lesson and task markdown: GFM tables, highlighted code, ```output blocks styled as a console. */
+/** Lesson and task markdown: GFM tables, highlighted code, ```output blocks styled as a console, ```mermaid diagrams. */
 export function Markdown({ children, size = 'lg' }: { children: string; size?: 'base' | 'lg' }) {
   const t = useT()
   const components: Components = {
@@ -29,6 +30,7 @@ export function Markdown({ children, size = 'lg' }: { children: string; size?: '
     pre: ({ node, ...props }) => {
       const code = (node as HastNode | undefined)?.children?.[0]
       const lang = code?.properties?.className?.find((c) => c.startsWith('language-'))?.slice(9)
+      if (code && lang === 'mermaid') return <Diagram code={textOf(code)} />
       if (code && lang === 'output')
         return (
           <figure className="not-prose -mt-2 mb-5 overflow-hidden rounded-b-2xl rounded-t-md border border-line bg-surface-2">
@@ -58,7 +60,7 @@ export function Markdown({ children, size = 'lg' }: { children: string; size?: '
         'prose-code:rounded-md prose-code:bg-surface-2 prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-[0.85em] prose-code:font-normal prose-code:text-ink prose-code:before:content-none prose-code:after:content-none',
       )}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[[rehypeHighlight, { detect: false, plainText: ['output'] }]]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[[rehypeHighlight, { detect: false, plainText: ['output', 'mermaid'] }]]} components={components}>
         {children}
       </ReactMarkdown>
     </div>

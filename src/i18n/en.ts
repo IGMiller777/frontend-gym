@@ -44,6 +44,7 @@ export const en: Dict = {
     label: (n: number, total: number) => `Lesson ${n} of ${total}`,
     minutes: (n: number) => `${n} min`,
     output: 'Output',
+    diagram: 'Diagram',
     prev: 'Previous lesson',
     next: 'Next lesson',
     nav: 'Lesson navigation',

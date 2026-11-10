@@ -4,6 +4,16 @@ A promise is an object standing for a result that arrives later: a server respon
 
 ## Three states
 
+```mermaid
+stateDiagram-v2
+  [*] --> pending: new Promise(executor)
+  pending --> fulfilled: resolve(value)
+  pending --> rejected: reject(reason) or throw
+  fulfilled --> [*]: then(onFulfilled)
+  rejected --> [*]: catch(onRejected)
+  note right of pending: The state changes once.<br/>Later resolve and reject calls are ignored.
+```
+
 A promise is in one of these states:
 
 - `pending`: no result yet;

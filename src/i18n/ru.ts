@@ -43,6 +43,7 @@ export const ru = {
     label: (n: number, total: number) => `Урок ${n} из ${total}`,
     minutes: (n: number) => `${n} мин`,
     output: 'Вывод',
+    diagram: 'Схема',
     prev: 'Предыдущий урок',
     next: 'Следующий урок',
     nav: 'Навигация по урокам',

@@ -66,6 +66,18 @@ const yieldToMain = () =>
 
 ## Web Workers
 
+```mermaid
+sequenceDiagram
+  participant M as Main thread (UI)
+  participant W as Web Worker
+  M->>W: new Worker('worker.js', { type: 'module' })
+  M->>W: postMessage(data) (a structured clone copy)
+  Note over M: the UI stays responsive
+  W->>W: heavy computation
+  W-->>M: postMessage(result)
+  M->>M: message event: update the UI
+```
+
 If the work is heavy in itself (parsing a large file, processing an image, encryption), move it to a **Web Worker**: a separate thread with its own event loop. A worker has no access to the DOM, `window` or `document`, but it has `fetch`, timers, promises, IndexedDB and WebSocket.
 
 ```js

@@ -3,8 +3,8 @@ import { runTests } from '../../runner/harness'
 import { typeCheck } from '../../../scripts/typecheck'
 import { codingTasks as allTasks } from '.'
 
-// Component tasks need a DOM: they are checked in coding.react.test.ts under jsdom.
-const codingTasks = allTasks.filter((t) => t.runtime !== 'react')
+// Component and DOM tasks need a document: they are checked under jsdom (coding.react.test.ts, coding.dom.test.ts).
+const codingTasks = allTasks.filter((t) => !t.runtime)
 const files = Object.fromEntries(codingTasks.flatMap((t) => [[`${t.id}.solution.ts`, t.solution], [`${t.id}.starter.ts`, t.starter]]))
 let diagnostics: Record<string, string[]> | undefined
 const diagnosticsFor = (name: string) => (diagnostics ??= typeCheck(files))[name]

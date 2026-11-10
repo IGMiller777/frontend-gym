@@ -26,6 +26,22 @@ rejected: nope
 
 ## What await does
 
+`await` suspends only its own function, and the stack is freed for the rest of the code:
+
+```mermaid
+sequenceDiagram
+  participant C as Calling code
+  participant F as async load()
+  participant Q as Microtask queue
+  C->>F: load()
+  F->>F: code before await
+  F-->>C: returns a promise (function suspended)
+  C->>C: keeps running
+  Note over Q: the awaited promise settled
+  Q->>F: continuation after await
+  F-->>C: load() promise fulfilled with the value
+```
+
 An async function's body runs synchronously **up to the first `await`**. At `await` the function pauses and returns a promise to the caller, and its continuation is queued as a microtask once the awaited value is ready. The stack is free meanwhile: the page is not blocked and other tasks run.
 
 ```js run

@@ -4,6 +4,16 @@ A promise cannot be "cancelled": it only reports a result. But the operation its
 
 ## Controller and signal
 
+```mermaid
+flowchart LR
+  C["new AbortController()"] -->|".signal"| S["AbortSignal"]
+  S --> F["fetch(url, { signal })"]
+  S --> L["addEventListener(type, fn, { signal })"]
+  S --> O["Your own function:<br/>signal.throwIfAborted()<br/>and the abort event"]
+  C -->|"abort(reason)"| X["Every subscriber is cancelled:<br/>fetch throws AbortError,<br/>listeners are removed"]
+  T["AbortSignal.timeout(ms)"] & U["user signal"] --> ANY["AbortSignal.any([...])"]
+```
+
 - `const controller = new AbortController()` creates a controller.
 - `controller.signal` is the signal; pass it to operations that must be cancellable.
 - `controller.abort(reason?)` cancels: `signal.aborted` becomes `true`, `signal.reason` gets the reason, and the signal fires an `abort` event.

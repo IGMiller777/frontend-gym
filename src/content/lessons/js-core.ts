@@ -1,10 +1,11 @@
 import type { Source } from '../sources'
+import { jsCoreMoreLessons } from './js-core-more'
 import type { Lesson, Module } from './types'
 
 const mdn = (title: string, path: string): Source => ({ title: `MDN: ${title}`, url: `https://developer.mozilla.org/en-US/docs/${path}`, kind: 'official' })
 const verified = { date: '2026-11', version: 'ECMAScript 2025' }
 
-export const jsCoreLessons: Lesson[] = [
+const baseLessons: Lesson[] = [
   {
     id: 'js-types',
     track: 'js-core',
@@ -134,29 +135,29 @@ export const jsCoreLessons: Lesson[] = [
     track: 'js-core',
     emoji: '🧠',
     minutes: 14,
-    title: { ru: 'Объекты, копирование и память', en: 'Objects, copying and memory' },
+    title: { ru: 'Копирование, неизменяемость, Map и Set', en: 'Copying, immutability, Map and Set' },
     summary: {
-      ru: 'Поверхностная и глубокая копия, structuredClone, freeze, Map и Set, сборка мусора, утечки и WeakMap.',
-      en: 'Shallow vs deep copy, structuredClone, freeze, Map and Set, garbage collection, leaks and WeakMap.',
+      ru: 'Поверхностная и глубокая копия, structuredClone и его ограничения, freeze, когда брать Map и Set вместо объекта.',
+      en: 'Shallow vs deep copy, structuredClone and its limits, freeze, when to use Map and Set instead of an object.',
     },
     quiz: {
       ru: [
         { q: '`const copy = { ...user }`, затем `copy.address.city = "Rome"`. Изменится ли `user.address.city`?', options: ['Нет, spread создал полную копию', 'Да, вложенный объект общий', 'Только в строгом режиме', 'Будет TypeError при записи'], correct: 1, why: 'Spread копирует только верхний уровень, а на вложенный объект копируется ссылка.' },
         { q: 'Что сделает `structuredClone({ run() {} })`?', options: ['Скопирует объект с методом', 'Скопирует без метода', 'Бросит DataCloneError', 'Вернёт `undefined`'], correct: 2, why: 'Функции не клонируются: `structuredClone` бросает `DataCloneError`.' },
         { q: 'После `Object.freeze(obj)` можно ли изменить `obj.nested.value`?', options: ['Нет, freeze глубокий', 'Да, freeze поверхностный', 'Только через `Object.assign`', 'Только в нестрогом режиме'], correct: 1, why: '`Object.freeze` замораживает только сам объект. Для вложенных нужно рекурсивно морозить каждый уровень.' },
-        { q: 'Зачем хранить метаданные DOM-узлов в `WeakMap`, а не в `Map`?', options: ['WeakMap быстрее при поиске по ключу', 'Можно перебирать записи по порядку', 'Не мешает удалить узел из памяти', 'Ключами могут быть строки'], correct: 2, why: '`WeakMap` не удерживает ключи: удалённый и забытый узел соберётся вместе с записью. `Map` держал бы его вечно.' },
+        { q: 'Когда `Map` лучше обычного объекта?', options: ['Для записей с известными полями', 'Для словаря с ключами-объектами', 'Для отправки данных в JSON', 'Для доступа к полям через точку'], correct: 1, why: '`Map` принимает ключи любого типа, помнит порядок вставки и не пересекается с ключами прототипа. Объект удобен для записей с известными полями и JSON.' },
       ],
       en: [
         { q: '`const copy = { ...user }`, then `copy.address.city = "Rome"`. Does `user.address.city` change?', options: ['No, spread made a full copy', 'Yes, the nested object is shared', 'Only in strict mode', 'It throws TypeError on write'], correct: 1, why: 'Spread copies only the top level; the nested object is copied by reference.' },
         { q: 'What does `structuredClone({ run() {} })` do?', options: ['Copies the object with the method', 'Copies it without the method', 'Throws DataCloneError', 'Returns `undefined`'], correct: 2, why: 'Functions cannot be cloned: `structuredClone` throws `DataCloneError`.' },
         { q: 'After `Object.freeze(obj)`, can you change `obj.nested.value`?', options: ['No, freeze is deep', 'Yes, freeze is shallow', 'Only via `Object.assign`', 'Only in sloppy mode'], correct: 1, why: '`Object.freeze` freezes only the object itself. Nested objects must be frozen level by level.' },
-        { q: 'Why store DOM node metadata in a `WeakMap` rather than a `Map`?', options: ['WeakMap is faster for key lookups', 'You can iterate entries in order', 'It does not keep the node alive', 'Keys can be plain strings'], correct: 2, why: '`WeakMap` does not hold its keys: a removed and forgotten node is collected along with its entry. A `Map` would keep it forever.' },
+        { q: 'When is a `Map` better than a plain object?', options: ['For records with known fields', 'For a dictionary keyed by objects', 'For sending data as JSON', 'For dot access to the fields'], correct: 1, why: 'A `Map` accepts keys of any type, keeps insertion order and never clashes with prototype keys. An object suits records with known fields and JSON.' },
       ],
     },
     sources: [
       mdn('structuredClone()', 'Web/API/Window/structuredClone'),
       mdn('Memory management', 'Web/JavaScript/Guide/Memory_management'),
-      mdn('WeakMap', 'Web/JavaScript/Reference/Global_Objects/WeakMap'),
+      mdn('Map', 'Web/JavaScript/Reference/Global_Objects/Map'),
       mdn('Object.freeze()', 'Web/JavaScript/Reference/Global_Objects/Object/freeze'),
     ],
     verified,
@@ -194,6 +195,15 @@ export const jsCoreLessons: Lesson[] = [
   },
 ]
 
+/** Path order: language basics first, then functions and objects, then runtime and modules. */
+const order = [
+  'js-types', 'js-numbers-strings', 'js-scope-closures', 'js-functions', 'js-this', 'js-prototypes', 'js-object-properties', 'js-objects-memory',
+  'js-arrays', 'js-iterators', 'js-errors', 'js-memory', 'js-patterns', 'js-caching', 'js-engine', 'js-modules',
+]
+const all = new Map([...baseLessons, ...jsCoreMoreLessons].map((l) => [l.id, l]))
+export const jsCoreLessons: Lesson[] = order.map((id) => all.get(id)!)
+if (jsCoreLessons.length !== all.size || jsCoreLessons.some((l) => !l)) throw new Error('js-core: lesson order is out of sync with lesson list')
+
 export const jsCoreModule: Module = {
   track: 'js-core',
   lessons: jsCoreLessons.map((l) => l.id),
@@ -209,6 +219,12 @@ export const jsCoreModule: Module = {
         { q: 'Какой способ глубоко копирует объект с `Map` и `Date` без потерь?', options: ['`{ ...obj }`', '`Object.assign({}, obj)`', '`JSON.parse(JSON.stringify(obj))`', '`structuredClone(obj)`'], correct: 3, why: 'Spread и `Object.assign` поверхностные, а JSON превращает `Date` в строку и `Map` в пустой объект.' },
         { q: '`function make() { let n = 0; return () => ++n }`, `a = make()`, `b = make()`. Что вернут `a(); a(); b()` последним вызовом?', options: ['`1`', '`2`', '`3`', '`0`'], correct: 0, why: 'Каждый вызов `make` создаёт своё окружение со своей `n`, поэтому `b()` возвращает `1`.' },
         { q: 'Что верно про импорт в ES-модулях?', options: ['Импорт это копия значения', 'Модуль выполняется при каждом импорте', 'Импорт это живая привязка', 'Импорт можно переприсвоить'], correct: 2, why: 'Импорт видит текущее значение экспортированной переменной, модуль выполняется один раз, а присваивать импорту нельзя.' },
+        { q: 'Чему равно `0.1 + 0.2 === 0.3`?', options: ['`true`', '`false`', '`NaN`', 'TypeError'], correct: 1, why: 'Двоичная плавающая точка хранит 0.1 и 0.2 с округлением: сумма равна `0.30000000000000004`.' },
+        { q: 'Что сделает `new (() => {})()`?', options: ['Создаст пустой объект', 'Вернёт `undefined`', 'Бросит TypeError', 'Вернёт саму функцию'], correct: 2, why: 'У стрелочной функции нет `[[Construct]]`: вызов с `new` бросает `TypeError`.' },
+        { q: 'Какой метод возвращает новый массив, не меняя исходный?', options: ['`toSorted`', '`sort`', '`splice`', '`reverse`'], correct: 0, why: '`toSorted`, `toReversed`, `toSpliced` и `with` из ES2023 копируют массив; остальные меняют его на месте.' },
+        { q: 'Что вернёт `gen()` для `function* gen() { console.log(1); yield 2 }`?', options: ['Выведет 1 и вернёт 2', 'Генератор, ничего не выведя', 'Выведет 1 и вернёт генератор', 'Бросит без `new`'], correct: 1, why: 'Тело генератора не выполняется до первого `next()`.' },
+        { q: 'Что вернёт `try { return 1 } finally { return 2 }`?', options: ['`1`', '`2`', '`undefined`', 'SyntaxError'], correct: 1, why: '`return` в `finally` перебивает результат `try` (и даже брошенную ошибку).' },
+        { q: 'Почему `WeakMap` подходит для метаданных DOM-узлов?', options: ['Он быстрее `Map`', 'Его можно перебирать', 'Он не держит узел в памяти', 'Ключи могут быть строками'], correct: 2, why: 'Когда узел удалён и забыт, запись исчезает вместе с ним; `Map` держал бы узел.' },
       ],
       en: [
         { q: 'What does `console.log(1 < 2 < 3, 3 > 2 > 1)` print?', options: ['`true true`', '`true false`', '`false true`', '`false false`'], correct: 1, why: '`3 > 2` gives `true`, then `true > 1` becomes `1 > 1`, which is `false`.' },
@@ -219,6 +235,12 @@ export const jsCoreModule: Module = {
         { q: 'Which deep-copies an object with a `Map` and a `Date` without losses?', options: ['`{ ...obj }`', '`Object.assign({}, obj)`', '`JSON.parse(JSON.stringify(obj))`', '`structuredClone(obj)`'], correct: 3, why: 'Spread and `Object.assign` are shallow, and JSON turns a `Date` into a string and a `Map` into an empty object.' },
         { q: '`function make() { let n = 0; return () => ++n }`, `a = make()`, `b = make()`. What does the last call in `a(); a(); b()` return?', options: ['`1`', '`2`', '`3`', '`0`'], correct: 0, why: 'Each `make` call creates its own environment with its own `n`, so `b()` returns `1`.' },
         { q: 'What is true about imports in ES modules?', options: ['An import is a copy', 'The module runs on every import', 'An import is a live binding', 'An import can be reassigned'], correct: 2, why: 'An import sees the current value of the exported variable, the module runs once, and imports cannot be assigned to.' },
+        { q: 'What is `0.1 + 0.2 === 0.3`?', options: ['`true`', '`false`', '`NaN`', 'TypeError'], correct: 1, why: 'Binary floating point stores 0.1 and 0.2 rounded: the sum is `0.30000000000000004`.' },
+        { q: 'What does `new (() => {})()` do?', options: ['Creates an empty object', 'Returns `undefined`', 'Throws TypeError', 'Returns the function'], correct: 2, why: 'An arrow function has no `[[Construct]]`: calling it with `new` throws a `TypeError`.' },
+        { q: 'Which method returns a new array without changing the original?', options: ['`toSorted`', '`sort`', '`splice`', '`reverse`'], correct: 0, why: 'ES2023 `toSorted`, `toReversed`, `toSpliced` and `with` copy the array; the others change it in place.' },
+        { q: 'What does `gen()` return for `function* gen() { console.log(1); yield 2 }`?', options: ['Logs 1 and returns 2', 'A generator, logging nothing', 'Logs 1, returns a generator', 'Throws without `new`'], correct: 1, why: 'A generator body does not run until the first `next()`.' },
+        { q: 'What does `try { return 1 } finally { return 2 }` return?', options: ['`1`', '`2`', '`undefined`', 'SyntaxError'], correct: 1, why: '`return` in `finally` overrides the result of `try` (and even a thrown error).' },
+        { q: 'Why does a `WeakMap` suit DOM node metadata?', options: ['It is faster than a `Map`', 'Its entries can be iterated', 'It does not keep the node alive', 'Its keys can be plain strings'], correct: 2, why: 'Once the node is removed and forgotten, the entry goes with it; a `Map` would keep the node.' },
       ],
     },
   },
