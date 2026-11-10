@@ -9,7 +9,7 @@ const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', 
 // DOM names Node lacks come from jsdom; Node's own Event classes are replaced so events dispatch on DOM nodes.
 const override = ['Event', 'EventTarget', 'CustomEvent', 'AbortController', 'AbortSignal', 'DOMException', 'FormData']
 for (const k of Object.getOwnPropertyNames(dom.window)) {
-  const isDom = /^[A-Z]/.test(k) || ['document', 'customElements', 'getComputedStyle', 'requestAnimationFrame', 'cancelAnimationFrame'].includes(k)
+  const isDom = /^[A-Z]/.test(k) || ['document', 'customElements', 'getComputedStyle', 'requestAnimationFrame', 'cancelAnimationFrame', 'history', 'location'].includes(k)
   if (isDom && (!(k in globalThis) || override.includes(k))) globalThis[k] = dom.window[k]
 }
 globalThis.window = dom.window
