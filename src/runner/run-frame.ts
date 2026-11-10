@@ -57,7 +57,7 @@ function createFrame(parent: HTMLElement, onMessage: (data: { type: string; resu
  * The frame stays in the viewport but transparent and inert to the pointer: browsers throttle timers
  * in off-screen cross-origin frames, and display: none would break focus and layout.
  */
-export function runInFrame(source: string, tests: RunnableTest[]): Promise<RunResult & { timedOut?: boolean }> {
+export function runInFrame(source: string, tests: RunnableTest[], runtime: 'react' | 'dom' = 'react'): Promise<RunResult & { timedOut?: boolean }> {
   return new Promise((resolve) => {
     const box = document.createElement('div')
     box.setAttribute('aria-hidden', 'true')
@@ -73,7 +73,7 @@ export function runInFrame(source: string, tests: RunnableTest[]): Promise<RunRe
     const { frame, dispose } = createFrame(
       box,
       (msg) => {
-        if (msg.type === 'ready') frame.contentWindow?.postMessage({ type: 'run', source, tests }, '*')
+        if (msg.type === 'ready') frame.contentWindow?.postMessage({ type: 'run', source, tests, runtime }, '*')
         else if (msg.type === 'result' && msg.result) done(msg.result)
       },
       (error) => done({ error, tests: [], logs: [] }),

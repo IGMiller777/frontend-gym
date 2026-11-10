@@ -89,11 +89,8 @@ function TaskView({ task }: { task: CodingTask }) {
   const runTests = async () => {
     if (running) return
     setRunning(true)
-    const runner = task.runtime === 'react' ? runInFrame : runInWorker
-    const result = await runner(
-      code,
-      task.tests.map((x) => ({ code: x.code, fakeTimers: x.fakeTimers })),
-    )
+    const tests = task.tests.map((x) => ({ code: x.code, fakeTimers: x.fakeTimers }))
+    const result = task.runtime ? await runInFrame(code, tests, task.runtime) : await runInWorker(code, tests)
     setRunning(false)
     setRun(result)
     if (!result.error && !result.timedOut && result.tests.length) {
@@ -219,7 +216,7 @@ function TaskView({ task }: { task: CodingTask }) {
           <div className="overflow-hidden rounded-3xl border border-line shadow-sm">
             <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
               <span className="px-1 text-sm font-semibold">{t.code.editor}</span>
-              <span className="text-xs text-muted">{task.runtime === 'react' ? 'TSX · React 19' : 'TypeScript'}</span>
+              <span className="text-xs text-muted">{task.runtime === 'react' ? 'TSX · React 19' : task.runtime === 'dom' ? 'TypeScript · DOM' : 'TypeScript'}</span>
               <button type="button" onClick={reset} className="ml-auto inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-muted transition hover:bg-surface-2 hover:text-ink">
                 <RotateCcw size={14} aria-hidden /> {t.code.reset}
               </button>
