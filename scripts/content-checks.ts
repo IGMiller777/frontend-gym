@@ -9,7 +9,8 @@ import { foldTrace } from '../src/content/predict/trace'
 import type { QuizQuestion } from '../src/content/lessons/types'
 import { isOfficial, type Source, type Verified } from '../src/content/sources'
 import { tracks } from '../src/content/tracks'
-import { extractSnippets, runSnippet } from './snippets'
+import { availableParallelism } from 'node:os'
+import { extractSnippets, runSnippet, runSnippetAsync } from './snippets'
 import { typeCheck } from './typecheck'
 
 export const ROOT = join(import.meta.dirname, '..')
@@ -197,25 +198,42 @@ export function predictProblems(run = true): string[] {
  * Type-checks every ```ts block and runs every ```js run / ```ts run example (in Russian bodies;
  * parity guarantees English is identical), comparing the output.
  */
-export function snippetProblems(): string[] {
+/** Runs `fn` over `items` with at most `limit` in flight; results keep the input order. */
+async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  let next = 0
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++
+      results[i] = await fn(items[i])
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+  return results
+}
+
+/** Every runnable example prints exactly its output block; TS examples type-check. Examples run in parallel. */
+export async function snippetProblems(): Promise<string[]> {
   const out: string[] = []
   const tsFiles: Record<string, string> = {}
+  const runnable: { where: string; snippet: ReturnType<typeof extractSnippets>[number] }[] = []
   for (const lesson of lessons) {
     if (!existsSync(bodyPath(lesson.track, lesson.id, 'ru'))) continue
     for (const s of extractSnippets(readBody(lesson.track, lesson.id, 'ru'))) {
       const where = `${lesson.id}.ru:${s.line}`
       if (s.lang === 'ts' || s.lang === 'tsx') tsFiles[`${where}.${s.lang}`] = s.code
-      if (s.mode === 'check') continue
-      let got: string
-      try {
-        got = runSnippet(s.code, s.lang, s.mode)
-      } catch (e) {
-        out.push(`${where}: example threw: ${(e as Error).message.split('\n')[0]}`)
-        continue
-      }
-      if (s.expected !== null && got !== s.expected) out.push(`${where}: output differs\n  expected: ${JSON.stringify(s.expected)}\n  actual:   ${JSON.stringify(got)}`)
+      if (s.mode !== 'check') runnable.push({ where, snippet: s })
     }
   }
+  const results = await mapPool(runnable, Math.max(2, availableParallelism()), async ({ where, snippet: s }) => {
+    try {
+      const got = await runSnippetAsync(s.code, s.lang, s.mode)
+      return s.expected !== null && got !== s.expected ? `${where}: output differs\n  expected: ${JSON.stringify(s.expected)}\n  actual:   ${JSON.stringify(got)}` : null
+    } catch (e) {
+      return `${where}: example threw: ${(e as Error).message.split('\n')[0]}`
+    }
+  })
+  for (const r of results) if (r) out.push(r)
   for (const [file, errors] of Object.entries(Object.keys(tsFiles).length ? typeCheck(tsFiles) : {}))
     for (const e of errors) out.push(`${file.replace(/\.tsx?$/, '')}: type error at block line ${e}`)
   return out

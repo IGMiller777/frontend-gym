@@ -4,6 +4,26 @@ React 19 added a built-in model for async actions: Actions, forms with `action`,
 
 ## Actions
 
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant F as form action
+  participant O as useOptimistic
+  participant S as Server
+  U->>F: submit the form
+  F->>O: show the expected result at once
+  Note over F: isPending = true, button disabled
+  F->>S: await saveTodo(formData)
+  alt success
+    S-->>F: saved
+    F->>F: update the real state
+  else error
+    S-->>F: error
+    O->>O: the optimistic value rolls back
+  end
+  Note over F: isPending = false
+```
+
 An **Action** is a function that runs inside a transition, including an async one (React 19; in 18 transitions could only be synchronous). While it runs, React tracks the pending state itself:
 
 ```jsx
@@ -135,7 +155,7 @@ import { act, Suspense, use } from 'react'
 import { createRoot } from 'react-dom/client'
 
 // The promise is created once, outside rendering (a cache or a parent would do this).
-const userPromise = new Promise((resolve) => setTimeout(() => resolve({ name: 'Ann' }), 20))
+const { promise: userPromise, resolve } = Promise.withResolvers()
 
 function User({ promise }) {
   const user = use(promise)
@@ -151,7 +171,10 @@ await act(() =>
   ),
 )
 console.log('first commit:', container.innerHTML)
-await act(() => userPromise)
+await act(async () => {
+  resolve({ name: 'Ann' }) // the response arrives
+  await userPromise
+})
 console.log('after the promise:', container.innerHTML)
 ```
 

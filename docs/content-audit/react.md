@@ -89,3 +89,73 @@
 - Когда компонент перерендеривается, `memo` и стабильные пропсы, ловушки контекста, React Compiler 1.0, `useTransition` и `useDeferredValue`, `<Activity>`, `<ViewTransition>`, виртуализация, `useSyncExternalStore`.
 - Actions, `useActionState`, `useFormStatus`, `useOptimistic`, `use` с Suspense, метаданные документа, error boundary и `onCaughtError`, библиотеки данных.
 - API серверного рендера и что из них удалено, `prerender` против `renderToString`, гидратация и ошибки несовпадения, `useId`, `use(browser())`, Server Components и Server Functions с проверкой прав, фреймворки вместо CRA.
+
+## Покрытие заметок Notion (второй проход)
+
+Второй проход (ноябрь 2026) по правилу «все темы из заметок плюс основные вопросы собеседований» добавил 9 уроков. Каждая тема страницы «React» и место, где она разобрана:
+
+| Тема в заметках | Где разобрано |
+|---|---|
+| React Compiler | `react-performance#React Compiler` |
+| JSX, Fragments, JSX без сборки | `react-jsx-components#JSX: правила`, `#React без JSX`; `react-rendering#Элемент это объект` |
+| React Render Flow | `react-rendering#Три шага обновления`, `react-internals#Две фазы` |
+| Virtual DOM | `react-internals#Зачем Virtual DOM` |
+| Fiber (stack reconciler, узлы, current и work-in-progress, единицы работы, фазы) | `react-internals#Fiber`, `#Две фазы` |
+| Reconciliation, diff, ключи | `react-rendering#Reconciliation`, `#Ключи в списках` |
+| Concurrent Rendering, приоритеты, tearing | `react-internals#Приоритеты и конкурентный рендер` |
+| Auto-batching и его отключение | `react-internals#Батчинг`, `react-state#Батчинг` |
+| Transitions, useDeferredValue | `react-performance#Тяжёлые обновления`, сравнение в `react-internals` |
+| Actions, useActionState, useOptimistic, use, Server Actions, Error Boundaries | `react-actions`, `react-server#Серверные функции` |
+| Хуки: почему победили классы, правила, ветвление, свои хуки | `react-hooks` |
+| useEffect и useLayoutEffect, edge cases | `react-effects` |
+| useState, useReducer, useContext | `react-state`, `react-hooks#useReducer`, `#useContext и use` |
+| useCallback и useMemo | `react-performance#memo, useMemo, useCallback` |
+| useRef, useImperativeHandle, useDebugValue | `react-effects#Refs`, `react-hooks#Refs и useImperativeHandle`, `#Свои хуки` |
+| Optimization: виртуализация, lazy, Suspense, бандл, DevTools | `react-performance`, `react-debugging#React DevTools и Profiler` |
+| Optimization: Service Workers, SSR | `net-caching` (Service Worker), `react-server` |
+| Events: SyntheticEvent, типы событий, делегирование | `react-state#События`, `react-forms#Перехват и всплытие` |
+| Controlled и uncontrolled, работа с формами | `react-state#Формы`, `react-forms`, `react-patterns#Управляемый и неуправляемый API` |
+| Всплытие событий в React, порталы | `react-state#События`, `react-patterns#Порталы` |
+| Binding в классах | `react-jsx-components#Классовые компоненты` |
+| Routing: React Router, хуки, API, history, location, match, lazy routes | `react-router` |
+| Connected React Router | `react-router#Что изменилось со времён v5` |
+| Redux (принципы, connect, actions, reducers, middleware, selectors, Redux Form, альтернативы) | трек `state` (этап 5); `react-hooks#useReducer` и `react-forms` (Redux Form устарел) |
+| Components: functional и class, lifecycle methods | `react-jsx-components` |
+| Props, props validation | `react-jsx-components#Компоненты, пропсы и children`, `#PropTypes` |
+| State | `react-state` |
+| Pure Components и memo | `react-performance`, таблица в `react-jsx-components` |
+| Refs, forwardRef | `react-effects#Refs`, `react-hooks#Refs и useImperativeHandle` |
+| Context | `react-patterns#Контекст`, `react-performance#Ловушка контекста` |
+| Portals | `react-patterns#Порталы` |
+| Patterns (условный рендер, render props, HOC) | `react-jsx-components#Условный рендер`, `react-patterns#HOC и render props` |
+| Server Interaction: работа с API | `react-data` |
+| Mock servers (MSW, json-server) | `react-data#MSW` |
+| WebSockets with React | `react-data#WebSocket и Server-Sent Events` |
+| Common pitfalls: stale closures, лишние рендеры, отладка | `react-debugging`, `react-effects`, `react-performance` |
+| Accessibility | `react-a11y-testing#Доступность в JSX`, `react-forms#Доступные ошибки` |
+| StrictMode | `react-rendering#StrictMode`, `react-debugging#StrictMode` |
+
+Темы собеседований, которых нет в заметках и которые добавлены: тестирование (Testing Library, `user-event`, `renderHook`, Playwright), `useSyncExternalStore`, `useId`, валидация браузера и схемы форм.
+
+## Ошибки, найденные во втором проходе
+
+| Раздел | В заметках | На самом деле | Источник |
+|---|---|---|---|
+| Events | «Пул объектов: React переиспользует 10–20 объектов», `e.persist()` нужен | Пула нет с React 17, `persist()` ничего не делает, событие можно читать асинхронно | [React 17: no event pooling](https://legacy.reactjs.org/blog/2020/08/10/react-v17-rc.html#no-event-pooling), урок `react-state` |
+| Events | Делегат «на document (или на root в React 18)» | На корневой контейнер с React 17 | там же |
+| Events | `onScroll` не всплывает «по умолчанию в React» | Так с React 17; раньше всплывал | там же |
+| Routing | `<Route path>` «устарел с v6.4», `Link` «реже используется» | `path` и `Link` основные API | [React Router: Routing](https://reactrouter.com/start/data/routing) |
+| Routing | `useRouteMatch` «в v7» | Удалён в v6, вместо него `useMatch` | [React Router: Upgrading from v5](https://reactrouter.com/upgrading/v5) |
+| Routing | `NavLink activeClassName` | Удалено в v6, `className` принимает функцию `({ isActive })` | там же |
+| Routing | `defer()` и `<Await>` как главный способ | `defer` удалён в v7, загрузчик возвращает промис напрямую | журнал изменений React Router 7 |
+| Routing | Импорт из `react-router-dom` | В v8 пакет удалён, импорт из `react-router` и `react-router/dom` | журнал изменений React Router 8 |
+| Components | `setState` «всегда асинхронный» | Он ставит обновление в очередь, а батчинг решает, когда применить; `flushSync` применяет сразу | [react.dev: flushSync](https://react.dev/reference/react-dom/flushSync), урок `react-internals` |
+| Components | `forwardRef` «единственный способ», `useImperativeHandle` «работает только внутри forwardRef» | С React 19 `ref` обычный проп функционального компонента | [React 19: ref as a prop](https://react.dev/blog/2024/12/05/react-19#ref-as-a-prop) |
+| Components | `defaultProps` «устаревает с 18.3» | В React 19 удалены для функциональных компонентов, `propTypes` не проверяются | [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide#removed-proptypes-and-defaultprops) |
+| Components | «Server Components и Actions требуют TypeScript» | Не требуют, TypeScript просто удобнее | react.dev |
+| Components | «React Forget (будущий компилятор)» | Вышел как React Compiler 1.0 (октябрь 2025) | урок `react-performance` |
+| Context | `use-context-selector` от kentcdodds | Автор dai-shi | [GitHub: dai-shi/use-context-selector](https://github.com/dai-shi/use-context-selector) |
+| Context | Контекст это «Provider и Consumer» | С React 19 провайдер пишут `<Context value>`, `Consumer` устарел; читают `useContext` или `use` | [react.dev: createContext](https://react.dev/reference/react/createContext) |
+| Patterns | Render props «умерли» | Живы там, где компонент отдаёт управление разметкой (`Controller` в React Hook Form, виртуализация, таблицы) | урок `react-patterns` |
+| Forms | React Hook Form «≈85 % новых проектов» | Цифра без источника | — |
+| Server Interaction | «TanStack Query в 90 % проектов», «MSW в 98 %» | Цифры без источника | — |

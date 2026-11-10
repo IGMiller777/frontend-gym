@@ -4,6 +4,19 @@ Effects synchronize a component with the outside world: subscriptions, timers, t
 
 ## When an effect runs
 
+```mermaid
+sequenceDiagram
+  participant C as Component
+  participant E as Effect
+  C->>E: mount: run the effect (deps = [id: 1])
+  Note over C: render with id: 2
+  C->>E: cleanup with the old values (id: 1)
+  C->>E: run the effect (id: 2)
+  Note over C: render with id: 2 (same deps)
+  Note over E: the effect does not re-run
+  C->>E: unmount: cleanup (id: 2)
+```
+
 `useEffect(setup, deps)` runs **after the commit**, usually after the browser has painted the frame. If dependencies changed, React first calls the cleanup from the previous run, then the new setup; on unmount the last cleanup is called. Dependencies are compared with `Object.is`. Without an array the effect runs after every render, with `[]` only after mount.
 
 ```jsx dom

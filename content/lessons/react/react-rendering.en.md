@@ -21,6 +21,13 @@ An element's `type` is either a string (a DOM tag) or a function (a component). 
 
 ## The three steps of an update
 
+```mermaid
+flowchart LR
+  T["1. Trigger<br/>initial render or setState"] --> R["2. Render<br/>React calls components,<br/>diffs with the previous tree"]
+  R --> C["3. Commit<br/>DOM changes, refs,<br/>layout effects"]
+  C --> P["Browser paints"] --> E["useEffect"]
+```
+
 1. **Trigger.** The first `root.render()` or a state change (`setState`, `dispatch`, a new context value).
 2. **Render.** React calls your components and gets a new tree of elements. This is pure computation: no requests, subscriptions or DOM edits. A render can be repeated or thrown away if a more urgent update arrives (for transitions and `useDeferredValue`).
 3. **Commit.** React compares the new tree with the previous one and applies only the difference to the DOM, then attaches `ref`s, runs `useLayoutEffect`, the browser paints a frame, and after that `useEffect` runs. The commit is synchronous and cannot be interrupted.
@@ -28,6 +35,16 @@ An element's `type` is either a string (a DOM tag) or a function (a component). 
 A re-render does not mean the DOM changes: if the result is the same, React touches nothing. "The virtual DOM is faster than the real one" is inaccurate: the win is that code describes the result while React finds the minimal set of edits itself.
 
 ## Reconciliation: type and position
+
+How React decides what to do with an element at the same position:
+
+```mermaid
+flowchart TD
+  Q1{"Same element type<br/>(tag or component)?"} -->|no| N["Unmount the old subtree<br/>with all its state, mount the new one"]
+  Q1 -->|yes| Q2{"Same key?"}
+  Q2 -->|no| N
+  Q2 -->|yes| U["Update props,<br/>keep state and DOM,<br/>continue with children"]
+```
 
 State belongs not to the component function but to a **place in the tree**. When comparing trees, React walks positions:
 
