@@ -42,7 +42,7 @@ export function extractSnippets(md: string): Snippet[] {
  */
 /** Globals a `js dom` example sees: the jsdom window's DOM classes replace Node's own Event & co. */
 const DOM_PRELUDE = `import { JSDOM } from 'jsdom'
-const __dom = new JSDOM('<!doctype html><html><head></head><body></body></html>')
+const __dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://app.example.com/' })
 // DOM names Node lacks come from jsdom; Node's own Event classes are replaced so events dispatch on DOM nodes.
 const __override = ['Event', 'EventTarget', 'CustomEvent', 'AbortController', 'AbortSignal', 'DOMException']
 for (const k of Object.getOwnPropertyNames(__dom.window)) {
@@ -50,6 +50,8 @@ for (const k of Object.getOwnPropertyNames(__dom.window)) {
   if (dom && (!(k in globalThis) || __override.includes(k))) globalThis[k] = __dom.window[k]
 }
 globalThis.window = __dom.window
+// Node has its own (flag-gated) Web Storage accessors: replace them with the page's storage.
+for (const k of ['localStorage', 'sessionStorage']) Object.defineProperty(globalThis, k, { value: __dom.window[k], configurable: true })
 `
 
 export function runSnippet(code: string, lang: Snippet['lang'] = 'js', mode: Snippet['mode'] = 'run'): string {
