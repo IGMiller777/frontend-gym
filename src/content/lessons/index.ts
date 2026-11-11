@@ -1,4 +1,5 @@
 import { angularLessons, angularModule } from './angular'
+import { apiLessons, apiModule } from './api'
 import { browserLessons, browserModule } from './browser'
 import { cssLessons, cssModule } from './css'
 import { htmlLessons, htmlModule } from './html'
@@ -11,8 +12,8 @@ import { typescriptLessons, typescriptModule } from './typescript'
 import { vueLessons, vueModule } from './vue'
 import type { Lesson, Module } from './types'
 
-export const lessons: Lesson[] = [...jsCoreLessons, ...jsAsyncLessons, ...typescriptLessons, ...browserLessons, ...networkLessons, ...htmlLessons, ...cssLessons, ...reactLessons, ...angularLessons, ...vueLessons, ...stateLessons]
-export const modules: Module[] = [jsCoreModule, jsAsyncModule, typescriptModule, browserModule, networkModule, htmlModule, cssModule, reactModule, angularModule, vueModule, stateModule]
+export const lessons: Lesson[] = [...jsCoreLessons, ...jsAsyncLessons, ...typescriptLessons, ...browserLessons, ...networkLessons, ...htmlLessons, ...cssLessons, ...reactLessons, ...angularLessons, ...vueLessons, ...stateLessons, ...apiLessons]
+export const modules: Module[] = [jsCoreModule, jsAsyncModule, typescriptModule, browserModule, networkModule, htmlModule, cssModule, reactModule, angularModule, vueModule, stateModule, apiModule]
 
 const byId = new Map(lessons.map((l) => [l.id, l]))
 export const getLesson = (id: string) => byId.get(id)
