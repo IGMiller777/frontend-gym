@@ -716,10 +716,12 @@ export function Demo() {
     tests: [
       {
         name: { ru: 'показывает «Loading…», потом результаты', en: 'shows "Loading…", then the results' },
-        code: `const search = fn((query) => new Promise((resolve) => setTimeout(() => resolve(['Ada', 'Alan']), 20)))
+        code: `let respond = () => {}
+const search = fn(() => new Promise((resolve) => { respond = () => resolve(['Ada', 'Alan']) }))
 render(<SearchUsers search={search} />)
 await user.type(screen.getByLabelText('Search'), 'a')
 expect(screen.getByText('Loading…')).toBeTruthy()
+respond()
 await waitFor(() => expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Ada', 'Alan']))
 expect(screen.queryByText('Loading…')).toBeNull()
 expect(search).toHaveBeenCalledTimes(1)`,
@@ -736,13 +738,15 @@ expect(screen.queryByRole('listitem')).toBeNull()`,
       },
       {
         name: { ru: 'медленный ответ на старый запрос не затирает новый', en: 'a slow response to an old query does not overwrite the new one' },
-        code: `const delays = { a: 80, ab: 10 }
-const search = (query) => new Promise((resolve) => setTimeout(() => resolve([query + ' result']), delays[query]))
+        code: `const pending = {}
+const search = (query) => new Promise((resolve) => { pending[query] = () => resolve([query + ' result']) })
 render(<SearchUsers search={search} />)
 await user.type(screen.getByLabelText('Search'), 'ab')
+pending.ab()
 await waitFor(() => expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['ab result']))
 // The slow answer for "a" arrives later and must not replace it.
-await sleep(150)
+pending.a()
+await sleep(30)
 expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['ab result'])`,
       },
       {
