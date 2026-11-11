@@ -47,8 +47,11 @@
     "@angular/router": "22.2.5",
     "@bramus/specificity": "^2.4.3",
     "@hono/node-server": "^2.1.5",
+    "@ngrx/signals": "22.0.1",
+    "@reduxjs/toolkit": "2.14.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/query-core": "5.107.1",
     "@tanstack/react-query": "5.107.1",
     "@testing-library/dom": "10.4.1",
     "@testing-library/react": "16.3.3",
@@ -62,7 +65,9 @@
     "concurrently": "^10.0.6",
     "dom-accessibility-api": "^0.7.1",
     "hono": "^4.13.13",
+    "jotai": "3.0.2",
     "jsdom": "^31.0.0",
+    "mobx": "7.1.5",
     "msw": "3.0.4",
     "oxlint": "^1.81.0",
     "pinia": "4.1.0",
@@ -73,6 +78,7 @@
     "vite": "^8.3.0",
     "vitest": "^5.0.5",
     "vue": "3.5.45",
-    "vue-router": "5.4.0"
+    "vue-router": "5.4.0",
+    "xstate": "5.33.4"
   }
 }
