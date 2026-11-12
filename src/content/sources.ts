@@ -49,6 +49,7 @@ export const officialDomains = [
   'docs.astro.build',
   'qwik.dev',
   'svelte.dev',
+  'rolldown.rs',
   'vite.dev',
   'nx.dev',
   'module-federation.io',
