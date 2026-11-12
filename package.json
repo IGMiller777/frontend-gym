@@ -68,6 +68,7 @@
     "concurrently": "^10.0.6",
     "dataloader": "2.2.3",
     "dom-accessibility-api": "^0.7.1",
+    "dompurify": "3.4.17",
     "graphql": "17.1.0",
     "hono": "^4.13.13",
     "jotai": "3.0.2",

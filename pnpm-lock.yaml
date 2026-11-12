@@ -156,6 +156,9 @@ importers:
       dom-accessibility-api:
         specifier: ^0.7.1
         version: 0.7.1
+      dompurify:
+        specifier: 3.4.17
+        version: 3.4.17
       graphql:
         specifier: 17.1.0
         version: 17.1.0
