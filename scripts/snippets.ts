@@ -89,12 +89,22 @@ function snippetCommand(code: string, lang: Snippet['lang'], mode: Snippet['mode
   return { args, clean }
 }
 
+/**
+ * Examples run as a reader would run them with `node`: without the `NODE_ENV=test` that Vitest sets
+ * for this process (otherwise `vite build` inside an example keeps development-only code).
+ */
+function childEnv(): NodeJS.ProcessEnv {
+  const env = { ...process.env }
+  delete env.NODE_ENV
+  return env
+}
+
 /** Time limit for one example. Generous: in CI many examples run at once on few cores. */
 const SNIPPET_TIMEOUT_MS = 20_000
 
 export function runSnippet(code: string, lang: Snippet['lang'] = 'js', mode: Snippet['mode'] = 'run'): string {
   const { args, clean } = snippetCommand(code, lang, mode)
-  const out = execFileSync(process.execPath, args, { encoding: 'utf8', timeout: SNIPPET_TIMEOUT_MS, cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] })
+  const out = execFileSync(process.execPath, args, { encoding: 'utf8', timeout: SNIPPET_TIMEOUT_MS, cwd: ROOT, env: childEnv(), stdio: ['ignore', 'pipe', 'pipe'] })
   return clean(out)
 }
 
@@ -102,7 +112,7 @@ export function runSnippet(code: string, lang: Snippet['lang'] = 'js', mode: Sni
 export function runSnippetAsync(code: string, lang: Snippet['lang'] = 'js', mode: Snippet['mode'] = 'run'): Promise<string> {
   const { args, clean } = snippetCommand(code, lang, mode)
   return new Promise((resolve, reject) => {
-    execFile(process.execPath, args, { encoding: 'utf8', timeout: SNIPPET_TIMEOUT_MS, cwd: ROOT, maxBuffer: 16 * 1024 * 1024 }, (error, stdout, stderr) => {
+    execFile(process.execPath, args, { encoding: 'utf8', timeout: SNIPPET_TIMEOUT_MS, cwd: ROOT, env: childEnv(), maxBuffer: 16 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (error) reject(Object.assign(error, { message: `${error.message}\n${stderr}` }))
       else resolve(clean(stdout))
     })

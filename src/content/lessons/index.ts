@@ -12,12 +12,13 @@ import { renderingLessons, renderingModule } from './rendering'
 import { securityLessons, securityModule } from './security'
 import { stateLessons, stateModule } from './state'
 import { testingLessons, testingModule } from './testing'
+import { toolingLessons, toolingModule } from './tooling'
 import { typescriptLessons, typescriptModule } from './typescript'
 import { vueLessons, vueModule } from './vue'
 import type { Lesson, Module } from './types'
 
-export const lessons: Lesson[] = [...jsCoreLessons, ...jsAsyncLessons, ...typescriptLessons, ...browserLessons, ...networkLessons, ...htmlLessons, ...cssLessons, ...reactLessons, ...angularLessons, ...vueLessons, ...stateLessons, ...apiLessons, ...renderingLessons, ...performanceLessons, ...securityLessons, ...testingLessons]
-export const modules: Module[] = [jsCoreModule, jsAsyncModule, typescriptModule, browserModule, networkModule, htmlModule, cssModule, reactModule, angularModule, vueModule, stateModule, apiModule, renderingModule, performanceModule, securityModule, testingModule]
+export const lessons: Lesson[] = [...jsCoreLessons, ...jsAsyncLessons, ...typescriptLessons, ...browserLessons, ...networkLessons, ...htmlLessons, ...cssLessons, ...reactLessons, ...angularLessons, ...vueLessons, ...stateLessons, ...apiLessons, ...renderingLessons, ...performanceLessons, ...securityLessons, ...testingLessons, ...toolingLessons]
+export const modules: Module[] = [jsCoreModule, jsAsyncModule, typescriptModule, browserModule, networkModule, htmlModule, cssModule, reactModule, angularModule, vueModule, stateModule, apiModule, renderingModule, performanceModule, securityModule, testingModule, toolingModule]
 
 const byId = new Map(lessons.map((l) => [l.id, l]))
 export const getLesson = (id: string) => byId.get(id)

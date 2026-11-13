@@ -66,6 +66,18 @@ export const officialDomains = [
   'docs.npmjs.com',
   'pnpm.io',
   'github.blog',
+  'devblogs.microsoft.com',
+  'eslint.org',
+  'oxc.rs',
+  'biomejs.dev',
+  'prettier.io',
+  'turborepo.com',
+  'semver.org',
+  'webpack.js.org',
+  'rspack.rs',
+  'esbuild.github.io',
+  'storybook.js.org',
+  'single-spa.js.org',
 ] as const
 
 export type SourceKind = 'official' | 'spec' | 'article'
