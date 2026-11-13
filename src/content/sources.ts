@@ -62,6 +62,10 @@ export const officialDomains = [
   'v8.dev',
   'cheatsheetseries.owasp.org',
   'owasp.org',
+  'top10.owasp.org',
+  'docs.npmjs.com',
+  'pnpm.io',
+  'github.blog',
 ] as const
 
 export type SourceKind = 'official' | 'spec' | 'article'
