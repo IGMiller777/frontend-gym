@@ -769,7 +769,7 @@ export const overviews: Record<string, Localized<Overview>> = {
         },
         {
           title: 'Хранение токенов',
-          text: 'Токен в `localStorage` прочитает любой внедрённый скрипт. Сессию надёжнее держать в cookie с `HttpOnly`, `Secure` и `SameSite`, а короткоживущий access-токен хранить в памяти страницы.',
+          text: 'Токен в `localStorage` прочитает любой внедрённый скрипт, а из памяти страницы его тоже можно получить. RFC 10017 рекомендует BFF: токены живут на сервере, а браузер держит только cookie сессии с `HttpOnly`, `Secure` и `SameSite`.',
         },
         {
           title: 'Зависимости',
@@ -794,7 +794,7 @@ export const overviews: Record<string, Localized<Overview>> = {
         },
         {
           title: 'Token storage',
-          text: 'A token in `localStorage` can be read by any injected script. Keep the session in a cookie with `HttpOnly`, `Secure` and `SameSite`, and hold a short-lived access token in page memory.',
+          text: 'A token in `localStorage` can be read by any injected script, and one in page memory can be obtained too. RFC 10017 recommends a BFF: tokens live on the server, and the browser holds only a session cookie with `HttpOnly`, `Secure` and `SameSite`.',
         },
         {
           title: 'Dependencies',

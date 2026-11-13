@@ -49,6 +49,7 @@ export const officialDomains = [
   'docs.astro.build',
   'qwik.dev',
   'svelte.dev',
+  'rolldown.rs',
   'vite.dev',
   'nx.dev',
   'module-federation.io',
@@ -61,6 +62,10 @@ export const officialDomains = [
   'v8.dev',
   'cheatsheetseries.owasp.org',
   'owasp.org',
+  'top10.owasp.org',
+  'docs.npmjs.com',
+  'pnpm.io',
+  'github.blog',
 ] as const
 
 export type SourceKind = 'official' | 'spec' | 'article'

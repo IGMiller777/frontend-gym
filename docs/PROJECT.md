@@ -2,7 +2,7 @@
 
 Этот файл обновляется в каждом PR. Он отвечает на три вопроса: что уже сделано, где это лежит в коде и как добавить новое, ничего не сломав. План по этапам находится в [PLAN.md](PLAN.md), команды запуска в [README](../README.md).
 
-Последнее обновление: 2026-11-11, трек «Архитектуры рендеринга» (этап 5): 8 уроков на двух языках (карта стратегий, SSR и кэш HTML, гидратация и несовпадения, стриминг, SSG, ISR и частичный пререндер, острова и Server Components, метафреймворки и edge, выбор стратегии), квизы, экзамен на 14 вопросов, 17 схем на каждом языке, аудит `docs/content-audit/rendering.md`.
+Последнее обновление: 2026-11-12, трек «Тестирование» (этап 5): 7 уроков на двух языках (стратегия, unit-тесты на Vitest, моки и таймеры, тесты компонентов, end-to-end на Playwright, доступность и визуальные тесты, нестабильные тесты, CI и собеседование), квизы, экзамен на 14 вопросов, 7 схем на каждом языке, аудит `docs/content-audit/testing.md`.
 
 ## Что реализовано
 
@@ -15,14 +15,14 @@
 | 2. Раннер кода, 12 кодинг-задач, «Что выведет код?» с визуализатором | готово | #5 |
 | 3. Платформа и язык: 6 треков | готово: `js-async`, `typescript`, `browser`, `network`, `html`, `css` | #6–#11 |
 | 4. React, Angular, Vue (и iframe-раннер компонентов) | уроки `react`, `angular`, `vue` (с проходами покрытия) и 6 компонентных задач React в песочнице готовы; компонентные задачи Vue и Angular не делались | #12–#19 |
-| 5. Состояние, API, рендеринг, производительность, безопасность, тесты, инструменты, system design | `state`, `api` и `rendering` готовы; остальные 5 треков не начаты | следующий |
+| 5. Состояние, API, рендеринг, производительность, безопасность, тесты, инструменты, system design | `state`, `api`, `rendering`, `performance`, `security` и `testing` готовы; остальные 2 трека не начаты | следующий |
 | 6. Mock-интервью | не начато | |
 | 7. Симулятор инцидентов | не начато | |
 | 8. Выпуск: достижения, GitHub Pages | частично: деплой Pages настроен в этапе 0 | |
 
 ### Треки
 
-18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у тринадцати. Число уроков в треке определяется таблицей покрытия заметок в аудите (все темы из Notion плюс основные вопросы собеседований), а не шаблоном; проход покрытия сделан для JS, React, Angular и Vue:
+18 треков описаны в `src/content/tracks.ts`, у каждого есть обзор на странице трека (`src/content/overviews.ts`). Полноценные модули (уроки, квиз в каждом уроке, экзамен) есть у шестнадцати. Число уроков в треке определяется таблицей покрытия заметок в аудите (все темы из Notion плюс основные вопросы собеседований), а не шаблоном; проход покрытия сделан для JS, React, Angular и Vue:
 
 | Трек | Уроки | Аудит заметок | Кодинг-задачи | «Что выведет» |
 |---|---|---|---|---|
@@ -39,7 +39,10 @@
 | `state` | 10 | `docs/content-audit/state.md` (версии RTK 2.14, TanStack Query 5.107, Zustand 5, Jotai 3, MobX 7, XState 5, NgRx 22; таблица покрытия Redux, NgRx и разделов System Design) | — | — |
 | `api` | 10 | `docs/content-audit/api.md` (версии MSW 3.0, graphql-js 17, tRPC 11, ws 8, Zod 4; таблица покрытия Server Interaction из React, SSE и gRPC из Browser, API Design из System Design) | — | — |
 | `rendering` | 8 | `docs/content-audit/rendering.md` (версии React 19.3, Vue 3.5, Next.js 16.4, Nuxt 4.6, Angular 22, Astro 7, SvelteKit 3; таблица покрытия SSR, Streaming и Hydration из Browser и Architecture из System Design) | — | — |
-| остальные 5 | только обзор | — | — | — |
+| `performance` | 9 | `docs/content-audit/performance.md` (Core Web Vitals, web-vitals 6, Lighthouse 13, soft navigations с Chrome 151, `scheduler.yield`; таблица покрытия Optimization из React, FMP и TTI из Browser, Optimizations из System Design) | — | — |
+| `security` | 8 | `docs/content-audit/security.md` (OWASP Top 10:2025, Trusted Types во всех браузерах, Sanitizer API, Fetch Metadata, RFC 10017 и BFF, npm trusted publishing, pnpm 11; таблица покрытия Security issues из Angular, eval из JS, Server Actions из React, токены из System Design) | — | — |
+| `testing` | 7 | `docs/content-audit/testing.md` (Vitest 5.1, Playwright 1.65, Testing Library 10, Angular 22 на Vitest, axe-core 4.14; таблица покрытия Testing из Angular, Mock servers из React, Accessibility testing из Browser) | — | — |
+| остальные 2 | только обзор | — | — | — |
 
 ### Режимы
 
@@ -63,7 +66,7 @@
 | `src/components/` | `Markdown` (рендер уроков, блок вывода), `Diagram` (блоки `mermaid`: Mermaid грузится лениво, тема из токенов `--surface`, `--ink`, `--brand-*`, перерисовка при смене темы, натуральный размер с горизонтальной прокруткой), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
 | `src/content/tracks.ts`, `overviews.ts` | Треки и их обзоры (RU/EN) |
 | `src/content/sources.ts` | Список официальных доменов (MDN, спецификации WHATWG, W3C, TC39, RFC, документация фреймворков), тип `Source` и `Verified` |
-| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `react.ts`, `angular.ts` и `vue.ts` (порядок уроков задаёт массив `order`), `js-core-more.ts`, `react-more.ts`, `angular-more.ts` и `vue-more.ts` (уроки прохода покрытия), `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`, `angular.ts`, `vue.ts`, `state.ts`, `api.ts`, `rendering.ts`; `index.ts` собирает их |
+| `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `react.ts`, `angular.ts` и `vue.ts` (порядок уроков задаёт массив `order`), `js-core-more.ts`, `react-more.ts`, `angular-more.ts` и `vue-more.ts` (уроки прохода покрытия), `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`, `angular.ts`, `vue.ts`, `state.ts`, `api.ts`, `rendering.ts`, `performance.ts`, `security.ts`, `testing.ts`; `index.ts` собирает их |
 | `content/lessons/<track>/<id>.{ru,en}.md` | Тексты уроков |
 | `src/content/coding/` | Кодинг-задачи: тесты, заготовка, эталон; `tasks-core.ts`, `tasks-async.ts`, `tasks-more.ts` (задачи из GFE 75 и LRU), `tasks-dom.ts` (DOM-задачи), `tasks-react.ts` (компонентные); `coding.test.ts` прогоняет эталоны в Node, `coding.dom.test.ts` и `coding.react.test.ts` в jsdom |
 | `content/tasks/<id>.{ru,en}.md` | Условие и разбор задачи, разделены строкой `<!-- solution -->` |
@@ -102,6 +105,9 @@
    - примеры трека `state`: библиотеки состояния без фреймворка в Node (`legacy_createStore` и `configureStore` из `@reduxjs/toolkit`, `QueryClient`, `QueryObserver` и `MutationObserver` из `@tanstack/query-core`, `zustand/vanilla`, `jotai/vanilla`, `mobx`, `xstate`). Zustand и контекст в React показывают ```` ```jsx dom ```` с подсчётом рендеров. NgRx SignalStore и сервисы Angular запускаются через `Injector.create({ providers: [Store] })` (сервис с `providedIn: 'root'` тоже надо перечислить в `providers`: это не корневой инжектор). У `QueryClient` в примерах `gcTime: Infinity`, а `staleTime` большой, если пример сам вызывает инвалидацию, иначе исход зависит от скорости машины. Все эти пакеты в `devDependencies`; `zustand` остаётся в `dependencies`, потому что на нём стор приложения;
    - примеры трека `api`: сервер вместо сети даёт MSW 3 (`setupServer` из `msw/node`, обработчики из `msw/http`, `msw/graphql`, `msw/ws`), запросы идут настоящим `fetch` и встроенным в Node.js `WebSocket`; рукопожатие и переподключение показаны на настоящем сервере `ws` с портом `0`; GraphQL на `graphql` и `dataloader`, tRPC на `@trpc/server` и `@trpc/client` с `fetchRequestHandler` вместо HTTP-сервера. Адреса в примерах абсолютные (`https://api.example.com/...`): в Node нет `location`. Ждать событие сокета надо условием (`until(() => ...)` с пределом), а не фиксированной паузой: в CI примеры идут параллельно, и паузы в десятки миллисекунд не хватает;
    - примеры трека `rendering`: серверный рендер React (`renderToString`, `renderToReadableStream`, `prerender` и `resume`) в ```` ```tsx run ````, гидратация и ленивая гидратация Vue в ```` ```tsx dom ```` и ```` ```js dom ```` (сервер и клиент в одном процессе, поэтому для Vue нужна фабрика приложения: `defineAsyncComponent` кэширует загруженный компонент). Пример Vue со стримингом написан на JS: типы `vue/server-renderer` требуют типов Node, которых нет в проверке примеров. Метки в выводе ставят по событию (пришли ли данные), а не по времени;
+   - примеры трека `performance`: расчёты метрик (p75, INP с отбрасыванием выбросов, окна сессий CLS, разбивка LCP) на данных без случайности; tree shaking и разбиение кода на `rolldown` (тот же, что внутри Vite 8; модули подставляет маленький плагин из объекта); замер долгой задачи на настоящем цикле событий печатает только сравнения (`>=`, «меньше в три раза»), а не миллисекунды;
+   - примеры трека `security`: серверная защита на настоящем Hono через `app.request()` без сети (CSP с nonce из `hono/secure-headers`, проверка `Sec-Fetch-Site` и `Origin`), криптография на Web Crypto (`crypto.subtle`: подписанный CSRF-токен, PKCE со сверкой по тестовому вектору RFC 7636, хэш для SRI), санитизация на DOMPurify в ```` ```js dom ````, экранирование React через `renderToString`, секрет в бандле на `rolldown` с `transform.define`. Случайные значения (nonce, verifier) в вывод не печатаются: только сравнения и длины;
+   - примеры трека `testing`: настоящий Vitest запускается из примера через `startVitest` из `vitest/node` на файлах во временной папке `node_modules/.vt-*` (оттуда тестовые файлы находят `vitest`; папку удаляют в конце, `process.exitCode = 0`, вывод `reporters: [{}]` глушится, печатаются состояния тестов). `vi` вне раннера не работает, а `expect` работает. Testing Library, `user-event` и `axe-core` в ```` ```js dom ````. Время в примерах моделируется заданными задержками, а не случайностью;
    - ```` ```ts check ```` и ```` ```tsx check ````: код должен пройти `tsc --strict` (для TSX с типами React); строку с ожидаемой ошибкой пометить `// @ts-expect-error: пояснение`;
    - в `js run` можно импортировать пакеты из devDependencies: так в уроке CSS специфичность считает `@bramus/specificity`;
    - в примерах React доступны React Router (`createMemoryRouter`, `RouterProvider` из `react-router/dom`), TanStack Query, MSW (`msw/node`), Testing Library (`render`, `screen`, `renderHook`) и `user-event`. Пример с TanStack Query задаёт `gcTime: Infinity`, иначе пятиминутные таймеры кэша не дают процессу завершиться за 10 с;
@@ -172,7 +178,7 @@
 ## Известные ограничения
 
 - Чанк страницы задачи около 519 КБ (CodeMirror).
-- Главный чанк около 972 КБ (292 КБ gzip): в нём метаданные всех уроков, квизы, экзамены и данные задач (для XP в шапке и списков). На `main` до прохода покрытия JS было около 642 КБ. Тексты уроков и Mermaid (около 100 КБ) грузятся лениво. Вынести квизы и задачи в ленивые чанки стоит отдельной задачей.
+- Главный чанк около 1075 КБ (325 КБ gzip): в нём метаданные всех уроков, квизы, экзамены и данные задач (для XP в шапке и списков). На `main` до прохода покрытия JS было около 642 КБ. Тексты уроков и Mermaid (около 100 КБ) грузятся лениво. Вынести квизы и задачи в ленивые чанки стоит отдельной задачей.
 - Песочница компонентов: `<iframe sandbox="allow-scripts allow-forms">` без `allow-same-origin`, у фрейма непрозрачный origin, доступа к странице, `localStorage` и cookies нет. Страница сама скачивает бандл и передаёт код во фрейм через `postMessage`, поэтому из фрейма не уходит ни одного запроса (встроенный браузер Claude такие запросы блокирует). Отправка формы без `preventDefault` не уводит фрейм, а пишет предупреждение в консоль задачи.
 - В песочнице production-сборка React: предупреждения разработки (ключи, `act`) там не появляются; в CI задачи идут на dev-сборке в jsdom.
 - Бесконечный цикл в компоненте: тайм-аут 6 с сработает, только если браузер выполняет фрейм в отдельном процессе; иначе вкладка зависнет, как от бесконечного цикла на обычной странице. Логические задачи без DOM по-прежнему идут в Web Worker и от этого защищены. Vue-задачи пока не сделаны.
