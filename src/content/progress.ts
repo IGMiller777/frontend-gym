@@ -8,6 +8,9 @@ export const LESSON_XP = 15
 export const EXAM_XP = 60
 export const CODE_XP = 30
 export const PREDICT_XP = 10
+export const INTERVIEW_XP = 40
+/** An interview counts toward XP once its best score would pass at senior level. */
+export const INTERVIEW_PASS = 70
 
 export const lessonDone = (results: Results, id: string) => (results[lessonKey(id)]?.best ?? 0) >= LESSON_PASS
 
@@ -22,7 +25,8 @@ export function totalXp(results: Results): number {
   const e = modules.filter((m) => examDone(results, m.track)).length * EXAM_XP
   const c = codingTasks.filter((x) => codeSolved(results, x.id)).length * CODE_XP
   const p = predictTasks.filter((x) => predictSolved(results, x.id)).length * PREDICT_XP
-  return l + e + c + p
+  const i = Object.entries(results).filter(([key, r]) => key.startsWith('interview:') && r.best >= INTERVIEW_PASS).length * INTERVIEW_XP
+  return l + e + c + p + i
 }
 
 export const predictSolved = (results: Results, id: string) => (results[predictKey(id)]?.best ?? 0) >= 100
