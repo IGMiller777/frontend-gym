@@ -14,6 +14,7 @@ const PredictTaskPage = lazy(() => import('./pages/PredictTaskPage'))
 const InterviewPage = lazy(() => import('./pages/InterviewPage'))
 const IncidentListPage = lazy(() => import('./pages/IncidentListPage'))
 const IncidentPage = lazy(() => import('./pages/IncidentPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="interview" element={<InterviewPage />} />
           <Route path="practice/incidents" element={<IncidentListPage />} />
           <Route path="incident/:id" element={<IncidentPage />} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

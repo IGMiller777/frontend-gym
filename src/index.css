@@ -37,6 +37,17 @@
   color-scheme: dark;
 }
 
+@theme {
+  --animate-toast-in: toast-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateX(5rem) scale(0.95);
+    }
+  }
+}
+
 @theme inline {
   --font-sans: 'Onest', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Unbounded', 'Onest', ui-sans-serif, sans-serif;
