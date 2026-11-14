@@ -2,7 +2,7 @@
 
 Этот файл обновляется в каждом PR. Он отвечает на три вопроса: что уже сделано, где это лежит в коде и как добавить новое, ничего не сломав. План по этапам находится в [PLAN.md](PLAN.md), команды запуска в [README](../README.md).
 
-Последнее обновление: 2026-11-14, этап 8 «Выпуск», все этапы плана завершены: звания, 23 достижения и квесты дня (`src/game/`), уведомления, страница профиля `/profile`, проверенная сборка GitHub Pages без ИИ, README на двух языках.
+Последнее обновление: 2026-11-14, сворачиваемые разделы уроков: каждый раздел `##` закрыт при открытии урока, раскрывается по клику, есть кнопка «Развернуть все». Все этапы плана завершены (этап 8 «Выпуск»: звания, достижения, квесты дня, профиль, Pages без ИИ, README).
 
 ## Что реализовано
 
@@ -67,7 +67,7 @@
 | `src/App.tsx` | Маршруты, все страницы грузятся лениво |
 | `src/pages/` | Страницы: `Home`, `TrackPage`, `LessonPage`, `ExamPage`, `CodingListPage`, `CodingTaskPage`, `PredictListPage`, `PredictTaskPage`, `InterviewPage` (выбор, раунд, разбор), `IncidentListPage`, `IncidentPage` (игра и разбор; партия хранится в localStorage), `ProfilePage` (звание, квесты дня, статистика, достижения) |
 | `src/interview/` | Mock-интервью: `types.ts` (общие с сервером типы запроса и разбора), `phases.ts` (фазы и их доли времени по форматам, RU/EN), `problems.ts` (10 задач system design: подсказка, скрытые факты, что покрыть, урок для подготовки), `session.ts` (сессия в localStorage, контекст для сервера в языке сессии, ключ результата `interview:<формат>:<id>`), `speech.ts` (Web Speech API: диктовка и озвучка), `DesignBoard.tsx` (холст `@xyflow/react` и заметки RADIO, грузится только в раундах design), `strings.ts` (строки интерфейса интервью: лежат отдельно от главных словарей, чтобы не попадать в первую загрузку) |
-| `src/components/` | `Markdown` (рендер уроков, блок вывода), `Diagram` (блоки `mermaid`: Mermaid грузится лениво, тема из токенов `--surface`, `--ink`, `--brand-*`, перерисовка при смене темы, натуральный размер с горизонтальной прокруткой), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
+| `src/components/` | `Markdown` (рендер уроков, блок вывода; с `collapsible` разделы `##` сворачиваются: заголовок остаётся `h2` с кнопкой внутри, закрытое содержимое `hidden="until-found"`, поэтому поиск по странице находит и раскрывает его), `sections.ts` (rehype-плагин, который собирает `h2` и текст до следующего `h2` в раздел), `Diagram` (блоки `mermaid`: Mermaid грузится лениво, тема из токенов `--surface`, `--ink`, `--brand-*`, перерисовка при смене темы, натуральный размер с горизонтальной прокруткой), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
 | `src/content/tracks.ts`, `overviews.ts` | Треки и их обзоры (RU/EN) |
 | `src/content/sources.ts` | Список официальных доменов (MDN, спецификации WHATWG, W3C, TC39, RFC, документация фреймворков), тип `Source` и `Verified` |
 | `src/content/lessons/` | Метаданные уроков, квизы и экзамены: `js-core.ts`, `react.ts`, `angular.ts` и `vue.ts` (порядок уроков задаёт массив `order`), `js-core-more.ts`, `react-more.ts`, `angular-more.ts` и `vue-more.ts` (уроки прохода покрытия), `js-async.ts`, `typescript.ts`, `browser.ts`, `network.ts`, `html.ts`, `css.ts`, `react.ts`, `angular.ts`, `vue.ts`, `state.ts`, `api.ts`, `rendering.ts`, `performance.ts`, `security.ts`, `testing.ts`, `tooling.ts`, `system-design.ts`; `index.ts` собирает их |

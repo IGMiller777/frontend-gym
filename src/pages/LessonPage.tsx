@@ -65,7 +65,9 @@ export default function LessonPage() {
         </div>
       </header>
 
-      <div className="mt-8">{body?.key === key ? <Markdown>{body.text}</Markdown> : <p className="text-muted">…</p>}</div>
+      <div className="mt-8">{body?.key === key ? <Markdown key={key} collapsible>
+            {body.text}
+          </Markdown> : <p className="text-muted">…</p>}</div>
 
       <section aria-labelledby="quiz" className="mt-12">
         <h2 id="quiz" className="text-2xl font-bold">
