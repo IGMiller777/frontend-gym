@@ -11,6 +11,7 @@ export const PREDICT_XP = 10
 export const INTERVIEW_XP = 40
 /** An interview counts toward XP once its best score would pass at senior level. */
 export const INTERVIEW_PASS = 70
+export const INCIDENT_XP = 35
 
 export const lessonDone = (results: Results, id: string) => (results[lessonKey(id)]?.best ?? 0) >= LESSON_PASS
 
@@ -26,8 +27,13 @@ export function totalXp(results: Results): number {
   const c = codingTasks.filter((x) => codeSolved(results, x.id)).length * CODE_XP
   const p = predictTasks.filter((x) => predictSolved(results, x.id)).length * PREDICT_XP
   const i = Object.entries(results).filter(([key, r]) => key.startsWith('interview:') && r.best >= INTERVIEW_PASS).length * INTERVIEW_XP
-  return l + e + c + p + i
+  const n = Object.entries(results).filter(([key, r]) => key.startsWith('incident:') && r.best >= 100).length * INCIDENT_XP
+  return l + e + c + p + i + n
 }
+
+export const incidentKey = (id: string) => `incident:${id}`
+/** An incident counts as solved when it was won at least once (a win is recorded as 100). */
+export const incidentSolved = (results: Results, id: string) => (results[incidentKey(id)]?.best ?? 0) >= 100
 
 export const predictSolved = (results: Results, id: string) => (results[predictKey(id)]?.best ?? 0) >= 100
 
