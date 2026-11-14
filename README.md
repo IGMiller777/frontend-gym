@@ -1,10 +1,25 @@
 # Frontend Gym
 
-**RU.** Тренажёр для подготовки к frontend-собеседованию: уроки с объяснением прямо на странице и ссылками на официальную документацию, задачи с проверкой кода в браузере, «что выведет код», разбор инцидентов производительности и mock-интервью с ИИ. Интерфейс и контент на русском и английском.
+**Онлайн-версия / Live:** https://igmiller777.github.io/frontend-gym/ (без ИИ-функций / without AI features)
 
-**EN.** A trainer for frontend interview prep: lessons that explain topics right on the page with links to official docs, coding tasks tested in the browser, "what does this code print", performance incident drills and AI mock interviews. UI and content in Russian and English.
+**RU.** Тренажёр для подготовки к frontend-собеседованию. Уроки объясняют тему прямо на странице, со схемами и примерами кода, которые проверяются запуском; ссылки на официальную документацию в конце. Кроме уроков: задачи с проверкой кода в браузере, «Что выведет код?» с пошаговым event loop, симулятор инцидентов производительности и mock-интервью с ИИ. Интерфейс и весь контент на русском и английском.
 
-План разработки / Roadmap: [docs/PLAN.md](docs/PLAN.md). Что уже сделано и где это в коде / Status and code map: [docs/PROJECT.md](docs/PROJECT.md).
+**EN.** A trainer for frontend interview prep. Lessons explain each topic right on the page, with diagrams and code examples that are verified by running them; links to official docs come at the end. Besides lessons: coding tasks tested in the browser, "What does it print?" with a step-by-step event loop, a performance incident simulator and AI mock interviews. The interface and all content are in Russian and English.
+
+План / Roadmap: [docs/PLAN.md](docs/PLAN.md). Состояние и карта кода / Status and code map: [docs/PROJECT.md](docs/PROJECT.md).
+
+## Что внутри / What is inside
+
+| Режим / Mode | Маршрут / Route | Объём / Size |
+|---|---|---|
+| Уроки с квизами и экзамены модулей / Lessons with quizzes and module exams | `/track/:id`, `/learn/:id`, `/track/:id/exam` | 18 треков, 163 урока / 18 tracks, 163 lessons |
+| Кодинг-задачи / Coding tasks | `/practice/coding`, `/code/:id` | 32 задачи: логика, DOM, компоненты React / 32 tasks: logic, DOM, React components |
+| «Что выведет код?» / "What does it print?" | `/practice/predict`, `/predict/:id` | 13 задач, event loop по шагам / 13 tasks, event loop step by step |
+| Симулятор инцидентов / Incident simulator | `/practice/incidents`, `/incident/:id` | 8 сценариев по Core Web Vitals / 8 Core Web Vitals scenarios |
+| Mock-интервью с ИИ / AI mock interview | `/interview` | теория по 18 трекам, live-coding, 10 задач system design / theory on 18 tracks, live coding, 10 system design tasks |
+| Профиль: звания, достижения, квесты дня / Profile: ranks, achievements, daily quests | `/profile` | 5 званий, 23 достижения, 3 квеста в день / 5 ranks, 23 achievements, 3 quests a day |
+
+Треки / Tracks: JavaScript (основа и асинхронность / core and async), TypeScript, браузер / browser, сеть / network, HTML и доступность / HTML and accessibility, CSS, React, Angular, Vue, состояние / state, API и realtime / API and realtime, архитектуры рендеринга / rendering, производительность / performance, безопасность / security, тестирование / testing, инструменты и сборка / tooling, frontend system design.
 
 ## Запуск / Run
 
@@ -16,55 +31,62 @@ pnpm dev          # web http://localhost:5900, api :5901
 На macOS можно дважды кликнуть `scripts/dev.command`: он найдёт свободную пару портов 5900–5909 и откроет браузер.
 On macOS you can double-click `scripts/dev.command`: it picks a free port pair in 5900–5909 and opens the browser.
 
-ИИ-функции работают через локальный Claude Code CLI (`claude -p`), без API-ключа. Модель: `GRADER_MODEL=opus pnpm dev` (по умолчанию `sonnet`).
-AI features use the local Claude Code CLI (`claude -p`), no API key. Model: `GRADER_MODEL=opus pnpm dev` (default `sonnet`).
+ИИ-функции (mock-интервью, ревью кода, наставник) работают через локальный Claude Code CLI (`claude -p`), без API-ключа. Модель: `GRADER_MODEL=opus pnpm dev` (по умолчанию `sonnet`). Прогресс хранится в `data/frontend-gym.json` (в `.gitignore`) с ежедневными бэкапами в `data/backups/`.
+AI features (mock interview, code review, mentor) use the local Claude Code CLI (`claude -p`), no API key. Model: `GRADER_MODEL=opus pnpm dev` (default `sonnet`). Progress lives in `data/frontend-gym.json` (gitignored) with daily backups in `data/backups/`.
+
+## Онлайн-версия / The online version
+
+GitHub Pages собирается из `main` workflow `.github/workflows/pages.yml` с `VITE_AI=off`: ИИ-функции скрыты, интервью показывает, как запустить проект локально, прогресс хранится только в браузере (localStorage). Всё остальное работает так же, включая запуск тестов кодинг-задач.
+GitHub Pages is built from `main` by `.github/workflows/pages.yml` with `VITE_AI=off`: AI features are hidden, the interview page explains how to run the project locally, and progress is kept only in the browser (localStorage). Everything else works the same, including running coding task tests.
+
+Проверить такую сборку локально / Check such a build locally:
+
+```bash
+BASE_PATH=/frontend-gym/ VITE_AI=off pnpm build && pnpm exec vite preview --base /frontend-gym/
+```
 
 ## Проверки / Checks
 
 ```bash
-pnpm test        # vitest
-pnpm typecheck   # tsc -b (app + server)
-pnpm lint        # oxlint
+pnpm test            # vitest: content, runner, engine, scenarios, game, server prompts
+pnpm typecheck       # tsc -b (app + server)
+pnpm lint            # oxlint
 pnpm build
-pnpm check:content   # RU/EN parity, sources, links, quizzes, runs every js/ts run example, tsc for ts examples
-pnpm check:links     # every official source link answers (needs network)
+pnpm check:content   # RU/EN parity, sources, quizzes, diagrams, runs every lesson example
+pnpm check:links     # every source link answers (needs network)
 ```
 
-Уроки лежат в `content/lessons/<track>/<id>.{ru,en}.md`, метаданные и квизы в `src/content/lessons/`. Пример кода с блоком ` ```output ` сразу после ` ```js run ` выполняется в тестах как ES-модуль, и его вывод сверяется с текстом урока.
-Lessons live in `content/lessons/<track>/<id>.{ru,en}.md`, metadata and quizzes in `src/content/lessons/`. A ` ```js run ` example followed by an ` ```output ` block is executed in tests as an ES module and its output is compared with the lesson text.
+Как проверяется контент / How content is checked:
 
-## Режимы / Modes
-
-- **Кодинг-задачи** (`/practice/coding`). Редактор CodeMirror, TypeScript через sucrase, тесты в Web Worker с лимитом 6 с, мини-`expect` и поддельные таймеры (`src/runner/`). Часть тестов скрыта. Разбор открывается после решения, ИИ-ревью кода через `/api/review/stream`.
-  **Coding tasks.** CodeMirror editor, TypeScript via sucrase, tests in a Web Worker with a 6 s limit, a small `expect` and fake timers (`src/runner/`). Some tests are hidden. The walkthrough opens once solved; AI code review via `/api/review/stream`.
-- **Что выведет код?** (`/practice/predict`). Ответ собирается из строк; задачи на event loop проходятся по шагам в визуализаторе (стек, микрозадачи, задачи, таймеры).
-  **What does it print?** The answer is built from lines; event-loop tasks can be stepped through in the visualizer (stack, microtasks, tasks, timers).
-
-## Как проверяется контент задач / How task content is checked
-
-- Эталонное решение каждой кодинг-задачи проходит все её тесты, заготовка проваливает хотя бы один, обе проходят `tsc --strict` (`src/content/coding/coding.test.ts`).
-  Every reference solution passes all its tests, every starter fails at least one, both pass `tsc --strict`.
-- Код каждой задачи «что выведет» запускается в Node, вывод сверяется с ответом. Трасса event loop проверяется по правилам: микрозадачи только при пустом стеке, задача только после всех микрозадач, таймеры истекают по времени, логи трассы равны выводу (`scripts/content-checks.ts`).
-  Every "what does it print" snippet runs in Node and must print the stored answer. Event-loop traces are checked against the rules: microtasks only on an empty stack, a task only after all microtasks, timers expire in time order, and the trace logs equal the output.
+- Пример кода в уроке с блоком ` ```output ` выполняется в тестах (Node, jsdom, React, Angular в JIT, Vue), и вывод сверяется с текстом урока; TypeScript-примеры проходят `tsc --strict`.
+  A lesson example followed by an ` ```output ` block is executed in tests (Node, jsdom, React, Angular in JIT, Vue) and must print the text of the lesson; TypeScript examples pass `tsc --strict`.
+- Эталонное решение каждой кодинг-задачи проходит все её тесты, заготовка проваливает хотя бы один.
+  Every reference solution passes all its tests, and every starter fails at least one.
+- Код каждой задачи «что выведет» запускается, вывод сверяется с ответом; трасса event loop проверяется по правилам.
+  Every "what does it print" snippet runs and must print the stored answer; event-loop traces are checked against the rules.
+- Каждый сценарий инцидента проигрывается без действий и выигрывается эталонным планом, а ловушки не помогают.
+  Every incident scenario is lost when idle and won by its reference plan, and traps do not help.
+- Схемы Mermaid разбираются настоящим парсером; квизы проверяются на «правильный ответ выдаёт длина».
+  Mermaid diagrams are parsed by the real parser; quizzes are checked so that length does not give away the answer.
 
 ## Структура / Layout
 
 | Путь / Path | Что / What |
 |---|---|
-| `src/i18n/` | Словари RU/EN, `useT()`, `Localized<T>` / RU/EN dictionaries |
-| `src/content/` | Треки, обзоры, источники / tracks, overviews, sources |
-| `src/design/`, `src/index.css` | Токены, светлая и тёмная темы / tokens, light and dark themes |
-| `src/runner/` | Раннер тестов: worker, `expect`, фейковые таймеры / test runner: worker, `expect`, fake timers |
-| `src/content/coding/`, `content/tasks/` | Кодинг-задачи: тесты, решения, условия и разборы / coding tasks |
-| `src/content/predict/` | «Что выведет код?» и модель трассы event loop / predict-output tasks and the trace model |
-| `src/store.ts` | Прогресс (файл через API + localStorage) / progress (file via API + localStorage) |
-| `server/` | Hono API: прогресс, наставник, ревью кода / progress, mentor, code review |
-
-Прогресс хранится в `data/frontend-gym.json` (в `.gitignore`) с ежедневными бэкапами в `data/backups/`.
-Progress lives in `data/frontend-gym.json` (gitignored) with daily backups in `data/backups/`.
+| `content/lessons/<track>/<id>.{ru,en}.md` | Тексты уроков / lesson texts |
+| `src/content/` | Треки, метаданные уроков, квизы, экзамены, задачи, источники / tracks, lesson metadata, quizzes, exams, tasks, sources |
+| `src/runner/` | Раннер тестов: worker, песочница-iframe, `expect`, фейковые таймеры / test runner: worker, sandboxed iframe, `expect`, fake timers |
+| `src/perf/` | Модель загрузки страницы и симулятор инцидентов / page load model and incident simulator |
+| `src/interview/` | Mock-интервью: задачи, фазы, доска, голос / mock interview: problems, phases, board, voice |
+| `src/game/` | Звания, достижения, квесты, уведомления / ranks, achievements, quests, notifications |
+| `src/i18n/` | Словари RU/EN / RU/EN dictionaries |
+| `src/store.ts` | Прогресс: файл через API и localStorage / progress: a file via the API and localStorage |
+| `server/` | Hono API: прогресс, наставник, ревью кода, интервьюер / progress, mentor, code review, interviewer |
+| `docs/content-audit/` | Сверка исходных заметок с документацией / notes checked against the docs |
 
 ## Правила контента / Content rules
 
 1. Объяснение на странице, ссылки только в конце в блоке «Читать подробнее». / Explain on the page; links only at the end under "Read more".
 2. Каждый материал ссылается на официальный источник из списка в `src/content/sources.ts`. / Every item cites an official source from `src/content/sources.ts`.
-3. Каждый текст есть на обоих языках, это проверяют тесты. / Every text exists in both languages, enforced by tests.
+3. Каждый текст есть на обоих языках с одинаковой структурой и одинаковым кодом, это проверяют тесты. / Every text exists in both languages with the same structure and the same code, enforced by tests.
+4. Утверждения сверяются с документацией и запуском, расхождения с исходными заметками записаны в `docs/content-audit/`. / Claims are checked against the docs and by running code; differences from the source notes are recorded in `docs/content-audit/`.

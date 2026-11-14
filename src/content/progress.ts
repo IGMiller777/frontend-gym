@@ -12,6 +12,8 @@ export const INTERVIEW_XP = 40
 /** An interview counts toward XP once its best score would pass at senior level. */
 export const INTERVIEW_PASS = 70
 export const INCIDENT_XP = 35
+/** Number of incident scenarios; kept here so the main bundle does not import the simulator (a test checks it). */
+export const INCIDENT_COUNT = 8
 
 export const lessonDone = (results: Results, id: string) => (results[lessonKey(id)]?.best ?? 0) >= LESSON_PASS
 

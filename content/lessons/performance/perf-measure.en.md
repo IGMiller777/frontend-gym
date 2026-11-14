@@ -92,7 +92,7 @@ performance.measure('filter', 'search:start', 'search:filtered')
 performance.measure('render', 'search:filtered', 'search:rendered')
 performance.measure('search total', 'search:start', 'search:rendered')
 
-await new Promise((r) => setTimeout(r)) // observer callbacks are delivered asynchronously
+while (measures.size < 3) await new Promise((r) => setTimeout(r)) // observer callbacks are delivered asynchronously
 console.log('measures:', [...measures.keys()].sort().join(', '))
 console.log('render is the bottleneck:', measures.get('render')! > measures.get('filter')!)
 console.log('total = filter + render:', Math.abs(measures.get('search total')! - measures.get('filter')! - measures.get('render')!) < 0.01)

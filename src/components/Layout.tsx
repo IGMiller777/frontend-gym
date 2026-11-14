@@ -1,8 +1,9 @@
-import { Flame, Zap } from 'lucide-react'
+import { Flame, Trophy } from 'lucide-react'
 import { totalXp } from '../content/progress'
 import { Suspense } from 'react'
 import { Link, Outlet } from 'react-router'
 import { useT } from '../i18n'
+import { Toaster } from '../game/Toaster'
 import { useApplySettings } from '../lib/theme'
 import { streak, useProgress } from '../store'
 import { LanguageSwitch, ThemeSwitch } from './Settings'
@@ -30,11 +31,14 @@ export function Layout() {
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-2">
-            {xp > 0 && (
-              <span className="hidden items-center gap-1 rounded-full bg-surface px-3 py-1.5 text-sm font-semibold text-brand-1 sm:flex">
-                <Zap size={15} aria-hidden /> {xp} {t.stats.xp}
-              </span>
-            )}
+            <Link
+              to="/profile"
+              aria-label={`${t.game.profile}: ${xp} ${t.stats.xp}`}
+              title={t.game.profile}
+              className="flex items-center gap-1 rounded-full bg-surface px-3 py-1.5 text-sm font-semibold text-brand-1 transition hover:bg-surface-2"
+            >
+              <Trophy size={15} aria-hidden /> <span aria-hidden>{xp} {t.stats.xp}</span>
+            </Link>
             {n > 0 && (
               <span className="hidden items-center gap-1 rounded-full bg-surface px-3 py-1.5 text-sm font-semibold text-brand-3 sm:flex" title={t.stats.streak(n)}>
                 <Flame size={16} aria-hidden /> {n}
@@ -51,6 +55,7 @@ export function Layout() {
           <Outlet />
         </Suspense>
       </main>
+      <Toaster />
     </div>
   )
 }

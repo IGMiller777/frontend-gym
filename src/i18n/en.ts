@@ -163,6 +163,11 @@ export const en: Dict = {
       log: (s: string) => `console.log → ${s}`,
     },
   },
+  game: {
+    profile: 'Profile and achievements',
+    notifications: 'Notifications',
+    close: 'Close the notification',
+  },
   groups: {
     platform: 'Platform',
     language: 'Language',

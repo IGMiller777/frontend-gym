@@ -162,6 +162,11 @@ export const ru = {
       log: (s: string) => `console.log → ${s}`,
     },
   },
+  game: {
+    profile: 'Профиль и достижения',
+    notifications: 'Уведомления',
+    close: 'Закрыть уведомление',
+  },
   groups: {
     platform: 'Платформа',
     language: 'Язык',
