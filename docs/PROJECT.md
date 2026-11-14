@@ -2,7 +2,7 @@
 
 Этот файл обновляется в каждом PR. Он отвечает на три вопроса: что уже сделано, где это лежит в коде и как добавить новое, ничего не сломав. План по этапам находится в [PLAN.md](PLAN.md), команды запуска в [README](../README.md).
 
-Последнее обновление: 2026-11-13, этап 6 «Mock-интервью»: страница `/interview` с тремя форматами (теория по треку, live-coding на кодинг-задачах, frontend system design с холстом и заметками RADIO), тремя режимами интервьюера, фазами по таймеру, голосом, подсказками и разбором по шести осям на двух языках.
+Последнее обновление: 2026-11-14, этап 7 «Симулятор инцидентов»: детерминированная модель загрузки и отклика страницы (`src/perf/`), 26 действий с объяснениями, 8 сценариев с событиями и тестами проходимости, страницы `/practice/incidents` и `/incident/:id` с водопадом загрузки, метриками по сегментам аудитории и разбором решений.
 
 ## Что реализовано
 
@@ -17,7 +17,7 @@
 | 4. React, Angular, Vue (и iframe-раннер компонентов) | уроки `react`, `angular`, `vue` (с проходами покрытия) и 6 компонентных задач React в песочнице готовы; компонентные задачи Vue и Angular не делались | #12–#19 |
 | 5. Состояние, API, рендеринг, производительность, безопасность, тесты, инструменты, system design | готово: `state`, `api`, `rendering`, `performance`, `security`, `testing`, `tooling`, `system-design` | #20–#27 |
 | 6. Mock-интервью | готово: теория, live-coding, system design | #28 |
-| 7. Симулятор инцидентов | не начато | |
+| 7. Симулятор инцидентов | готово: движок, 8 сценариев, интерфейс | #29 |
 | 8. Выпуск: достижения, GitHub Pages | частично: деплой Pages настроен в этапе 0 | |
 
 ### Треки
@@ -57,14 +57,14 @@
 | «Что выведет код?» с пошаговым event loop | `/practice/predict`, `/predict/:id` | готово |
 | Наставник (вопрос по теме, стрим) | `/api/ask/stream` | только API, кнопки в интерфейсе нет |
 | Mock-интервью: теория, live-coding, system design | `/interview`, `/api/interview/turn/stream`, `/api/interview/grade` | готово |
-| Инциденты | — | не начато, на главной помечены «скоро» |
+| Симулятор инцидентов (Core Web Vitals, релизы, события, разбор) | `/practice/incidents`, `/incident/:id` | готово |
 
 ## Карта кода
 
 | Путь | Что там |
 |---|---|
 | `src/App.tsx` | Маршруты, все страницы грузятся лениво |
-| `src/pages/` | Страницы: `Home`, `TrackPage`, `LessonPage`, `ExamPage`, `CodingListPage`, `CodingTaskPage`, `PredictListPage`, `PredictTaskPage`, `InterviewPage` (выбор, раунд, разбор) |
+| `src/pages/` | Страницы: `Home`, `TrackPage`, `LessonPage`, `ExamPage`, `CodingListPage`, `CodingTaskPage`, `PredictListPage`, `PredictTaskPage`, `InterviewPage` (выбор, раунд, разбор), `IncidentListPage`, `IncidentPage` (игра и разбор; партия хранится в localStorage) |
 | `src/interview/` | Mock-интервью: `types.ts` (общие с сервером типы запроса и разбора), `phases.ts` (фазы и их доли времени по форматам, RU/EN), `problems.ts` (10 задач system design: подсказка, скрытые факты, что покрыть, урок для подготовки), `session.ts` (сессия в localStorage, контекст для сервера в языке сессии, ключ результата `interview:<формат>:<id>`), `speech.ts` (Web Speech API: диктовка и озвучка), `DesignBoard.tsx` (холст `@xyflow/react` и заметки RADIO, грузится только в раундах design), `strings.ts` (строки интерфейса интервью: лежат отдельно от главных словарей, чтобы не попадать в первую загрузку) |
 | `src/components/` | `Markdown` (рендер уроков, блок вывода), `Diagram` (блоки `mermaid`: Mermaid грузится лениво, тема из токенов `--surface`, `--ink`, `--brand-*`, перерисовка при смене темы, натуральный размер с горизонтальной прокруткой), `Quiz`, `ReadMore` (источники в конце страницы), `CodeEditor` (CodeMirror), `EventLoopViz`, `Layout`, `Settings` |
 | `src/content/tracks.ts`, `overviews.ts` | Треки и их обзоры (RU/EN) |
@@ -74,7 +74,8 @@
 | `src/content/coding/` | Кодинг-задачи: тесты, заготовка, эталон; `tasks-core.ts`, `tasks-async.ts`, `tasks-more.ts` (задачи из GFE 75 и LRU), `tasks-dom.ts` (DOM-задачи), `tasks-react.ts` (компонентные); `coding.test.ts` прогоняет эталоны в Node, `coding.dom.test.ts` и `coding.react.test.ts` в jsdom |
 | `content/tasks/<id>.{ru,en}.md` | Условие и разбор задачи, разделены строкой `<!-- solution -->` |
 | `src/content/predict/` | Задачи «что выведет», `trace.ts` это модель трассы event loop и её проверка |
-| `src/content/progress.ts` | Что считается пройденным, XP (интервью: 40 XP за каждый формат и тему с лучшим результатом от 70) |
+| `src/content/progress.ts` | Что считается пройденным, XP (интервью: 40 XP за каждый формат и тему с лучшим результатом от 70; инцидент: 35 XP за победу, ключ `incident:<id>`) |
+| `src/perf/` | Симулятор инцидентов: `types.ts` (страница, ресурсы, взаимодействия, сдвиги, аудитория, сценарий), `engine.ts` (модель: канал по приоритетам, обнаружение ресурсов из HTML, CSS и JS, блокирующие ресурсы, главный поток, CSR, ленивые картинки, шрифты с блокировкой текста; метрики TTFB, FCP, LCP, CLS, INP, TBT; три сегмента аудитории с разбросом, p75 и здоровье как доля пользователей с хорошими LCP, INP и CLS; пороги web.dev), `actions.ts` (26 действий с ценой в часах, описанием и разбором, ловушки, разовые действия, удаление сторонних тегов), `game.ts` (ходы-релизы, бюджет часов, события, журнал, `play` для тестов), `scenarios.ts` (8 сценариев с эталонным планом), `Waterfall.tsx` (водопад загрузки в SVG с таблицей для скринридеров), `strings.ts` (строки симулятора отдельно от главных словарей) |
 | `src/runner/` | Раннер тестов: `harness.ts` (работает в воркере, во фрейме и в Node; опции `jsx`, `modules`, `globals`, `afterEach`), `expect.ts`, `clock.ts` (поддельные таймеры), `worker.ts`, `run.ts` (лимит 6 с) |
 | `src/runner/react-runtime.ts`, `dom-testing.ts` | Компонентные задачи: модули React для `import`, помощники тестов `render`, `screen` (`getByRole`, `getByText`, `getByLabelText`), `user` (`click`, `type`, `clear`, `keyboard`), `waitFor`, `flush`, `sleep` |
 | `src/runner/react-frame.ts`, `run-frame.ts` | Песочница: точка входа фрейма и запуск из страницы (`runInFrame(source, tests, 'react' \| 'dom')`, `mountPreview`) |
@@ -153,6 +154,10 @@
 ### Задача system design для интервью
 
 Объект в `src/interview/problems.ts`: `prompt` нарочно расплывчатый, `facts` интервьюер раскрывает только по вопросу, `focus` направляет разбор и проверяется комиссией, `lesson` ведёт на урок для подготовки. Количество пунктов `facts` и `focus` в RU и EN должно совпадать (тест `src/interview/interview.test.ts`). Теория и live-coding берут темы из модулей треков и кодинг-задач сами.
+
+### Сценарий инцидента
+
+Объект в `src/perf/scenarios.ts`: страница (ресурсы, взаимодействия, сдвиги), аудитория, список предлагаемых действий из `src/perf/actions.ts`, события по ходам и эталонный план `solution`. Тест `src/perf/perf.test.ts` проверяет, что без действий сценарий проигрывается, эталонный план выигрывает, ловушки не помогают ни в начале, ни после эталонного плана, а повтор действия не улучшает страницу. Для подбора чисел удобно временно напечатать `measure()` по ходам эталонного плана.
 
 ### Строки интерфейса
 
