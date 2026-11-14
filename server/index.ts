@@ -3,8 +3,10 @@ import { type Context, Hono } from 'hono'
 import { streamText } from 'hono/streaming'
 import { askSystem, buildAskPrompt, type AskRequest } from './ask'
 import { MODEL, runClaude, streamClaude } from './claude'
+import { buildGradePrompt, buildTurnPrompt, interviewGradeSchema, interviewGradeSystem, interviewSystem } from './interview'
 import { progressStore } from './progress'
 import { buildReviewPrompt, reviewSystem, type ReviewRequest } from './review'
+import type { InterviewRequest } from '../src/interview/types'
 
 const PORT = Number(process.env.API_PORT ?? 5901)
 const app = new Hono()
@@ -57,6 +59,15 @@ function streamRoute<T>(path: string, build: (body: T) => { prompt: string; syst
 
 streamRoute<AskRequest>('/api/ask/stream', (b) => ({ prompt: buildAskPrompt(b), system: askSystem(b.locale) }))
 streamRoute<ReviewRequest>('/api/review/stream', (b) => ({ prompt: buildReviewPrompt(b), system: reviewSystem(b.locale) }))
+
+// Mock interview: the interviewer's next turn as a stream, the committee's review as a structured object.
+streamRoute<InterviewRequest & { hint?: boolean }>('/api/interview/turn/stream', (b) => ({
+  prompt: buildTurnPrompt(b, b.hint),
+  system: interviewSystem(b.subject.format, b.mode, b.locale),
+}))
+route<InterviewRequest>('/api/interview/grade', (b) =>
+  runClaude(buildGradePrompt(b), { system: interviewGradeSystem(b.subject.format, b.locale), schema: interviewGradeSchema }),
+)
 
 // Player progress: a file in data/ so it survives clearing the browser.
 app.get('/api/progress/:name', async (c) => {

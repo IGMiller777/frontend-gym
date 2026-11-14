@@ -863,7 +863,7 @@ export const overviews: Record<string, Localized<Overview>> = {
       topics: [
         {
           title: 'Vite',
-          text: 'В режиме разработки Vite отдаёт исходники браузеру как нативные ES-модули и не собирает бандл, поэтому сервер стартует мгновенно. Для продакшена код собирает бандлер (Rollup, в новых версиях Rolldown).',
+          text: 'В режиме разработки Vite отдаёт исходники браузеру как нативные ES-модули и не собирает бандл, поэтому сервер стартует мгновенно. Для продакшена код собирает Rolldown: с Vite 8 он же предварительно собирает зависимости в разработке, а Oxc убирает типы и JSX.',
         },
         {
           title: 'Бандлинг и tree-shaking',
@@ -888,7 +888,7 @@ export const overviews: Record<string, Localized<Overview>> = {
       topics: [
         {
           title: 'Vite',
-          text: 'In development Vite serves sources to the browser as native ES modules without bundling, so the server starts instantly. For production a bundler builds the code (Rollup, Rolldown in newer versions).',
+          text: 'In development Vite serves sources to the browser as native ES modules without bundling, so the server starts instantly. For production Rolldown builds the code: since Vite 8 it also pre-bundles dependencies in development, and Oxc strips types and JSX.',
         },
         {
           title: 'Bundling and tree-shaking',

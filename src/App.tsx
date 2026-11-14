@@ -11,6 +11,7 @@ const CodingListPage = lazy(() => import('./pages/CodingListPage'))
 const CodingTaskPage = lazy(() => import('./pages/CodingTaskPage'))
 const PredictListPage = lazy(() => import('./pages/PredictListPage'))
 const PredictTaskPage = lazy(() => import('./pages/PredictTaskPage'))
+const InterviewPage = lazy(() => import('./pages/InterviewPage'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="code/:id" element={<CodingTaskPage />} />
           <Route path="practice/predict" element={<PredictListPage />} />
           <Route path="predict/:id" element={<PredictTaskPage />} />
+          <Route path="interview" element={<InterviewPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -233,7 +233,7 @@ export const angularMoreLessons: Lesson[] = [
       docs('Interceptors', 'guide/http/interceptors'),
       docs('Testing requests', 'guide/http/testing'),
       docs('Dependency injection', 'guide/di'),
-      { title: 'OWASP: JSON Web Token cheat sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html', kind: 'official' },
+      { title: 'OWASP: JSON Web Token cheat sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html', kind: 'official' },
     ],
     verified,
   },
