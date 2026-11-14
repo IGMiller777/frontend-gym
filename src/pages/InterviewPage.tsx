@@ -500,7 +500,13 @@ function CodingPanel({
     <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)] gap-3 lg:grid-rows-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
       <section className="min-h-0 overflow-y-auto rounded-2xl border border-line bg-surface p-4">
         <h2 className="text-sm font-semibold text-muted">{iv.code.statement}</h2>
-        <div className="mt-2">{statement ? <Markdown size="base">{statement}</Markdown> : '…'}</div>
+        <div className="mt-2">{statement ? (
+            <Markdown key={statement} size="base" collapsible>
+              {statement}
+            </Markdown>
+          ) : (
+            '…'
+          )}</div>
       </section>
       <section className="flex min-h-0 flex-col rounded-2xl border border-line bg-surface p-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">

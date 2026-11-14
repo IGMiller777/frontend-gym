@@ -170,7 +170,9 @@ function TaskView({ task }: { task: CodingTask }) {
               <p className="text-muted">…</p>
             ) : tab === 'statement' ? (
               <>
-                <Markdown size="base">{body.statement}</Markdown>
+                <Markdown key={`${task.id}:${body.locale}:statement`} size="base" collapsible>
+                  {body.statement}
+                </Markdown>
                 <h2 className="mt-8 text-xl font-bold">{t.code.tests}</h2>
                 <ul className="mt-3 space-y-2">
                   {visible.map((test) => {
@@ -196,7 +198,7 @@ function TaskView({ task }: { task: CodingTask }) {
                 )}
               </>
             ) : open ? (
-              <Markdown size="base">{`## ${t.code.reference}\n\n\`\`\`${task.runtime === 'react' ? 'tsx' : 'ts'}\n${task.solution}\`\`\`\n\n${body.walkthrough}`}</Markdown>
+              <Markdown key={`${task.id}:${body.locale}:walkthrough`} size="base" collapsible>{`## ${t.code.reference}\n\n\`\`\`${task.runtime === 'react' ? 'tsx' : 'ts'}\n${task.solution}\`\`\`\n\n${body.walkthrough}`}</Markdown>
             ) : (
               <div className="rounded-3xl border border-dashed border-line bg-surface p-6 text-center">
                 <Lock size={28} aria-hidden className="mx-auto text-brand-1" />

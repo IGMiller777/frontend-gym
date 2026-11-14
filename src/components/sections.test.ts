@@ -3,10 +3,13 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { describe, expect, test } from 'vitest'
+import { SOLUTION_MARK } from '../content/coding/types'
 import { countSections, rehypeSections } from './sections'
 
 // Every lesson body in both languages, keyed by path.
 const lessons = import.meta.glob<string>('/content/lessons/**/*.md', { query: '?raw', import: 'default', eager: true })
+// Coding task statements and walkthroughs, also shown with collapsible sections.
+const tasks = import.meta.glob<string>('/content/tasks/*.md', { query: '?raw', import: 'default', eager: true })
 const render = (md: string) => renderToStaticMarkup(createElement(ReactMarkdown, { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeSections] }, md))
 
 describe('collapsible lesson sections', () => {
@@ -26,6 +29,17 @@ describe('collapsible lesson sections', () => {
       const rendered = render(md).match(/<section data-section=/g)?.length ?? 0
       expect(rendered, file).toBe(countSections(md))
       expect(rendered, file).toBeGreaterThan(0)
+    }
+  })
+
+  test('every coding task statement and walkthrough splits into sections', () => {
+    expect(Object.keys(tasks).length).toBeGreaterThan(60)
+    for (const [file, md] of Object.entries(tasks)) {
+      for (const part of md.split(SOLUTION_MARK)) {
+        const rendered = render(part).match(/<section data-section=/g)?.length ?? 0
+        expect(rendered, file).toBe(countSections(part))
+        expect(rendered, file).toBeGreaterThan(0)
+      }
     }
   })
 })
